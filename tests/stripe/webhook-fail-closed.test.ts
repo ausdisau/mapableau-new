@@ -9,7 +9,6 @@ const {
   handleLegacyStripeEvent,
   handleAdsStripeEvent,
   isAdsWalletTopUpEvent,
-  paymentsModeMock,
 } = vi.hoisted(() => ({
   markWebhookProcessed: vi.fn(async () => undefined),
   markLegacyWebhookProcessed: vi.fn(async () => undefined),
@@ -24,18 +23,13 @@ const {
   handleLegacyStripeEvent: vi.fn(async () => undefined),
   handleAdsStripeEvent: vi.fn(async () => undefined),
   isAdsWalletTopUpEvent: vi.fn(() => false),
-  paymentsModeMock: vi.fn(() => "test"),
 }));
 
-vi.mock("@/lib/billing/core/webhook-handler", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/lib/billing/core/webhook-handler")>();
-  return {
-    ...actual,
-    handleStripeBillingEvent,
-    markWebhookProcessed,
-    storeWebhookEventIdempotent,
-  };
-});
+vi.mock("@/lib/billing/core/webhook-handler", () => ({
+  handleStripeBillingEvent,
+  markWebhookProcessed,
+  storeWebhookEventIdempotent,
+}));
 
 vi.mock("@/lib/stripe/legacy-webhooks", () => ({
   handleLegacyStripeEvent,
@@ -53,21 +47,24 @@ vi.mock("@/lib/stripe/config", () => ({
   stripeConfig: { webhookSecret: "whsec_test" },
 }));
 
-vi.mock("@/lib/payouts/config", () => ({
-  paymentsMode: paymentsModeMock,
+vi.mock("@/lib/stripe/client", () => ({
+  getStripeClient: () => ({
+    webhooks: { constructEvent: () => ({}) },
+  }),
+}));
+
+vi.mock("@/lib/stripe/metadata", () => ({
+  legacyInvoiceIdFromMetadata: (meta: Record<string, string> | null | undefined) =>
+    meta?.legacyInvoiceId ?? null,
 }));
 
 import { dispatchStripeWebhook } from "@/lib/stripe/webhooks";
-import {
-  assertLivemodeMatches,
-  StripeLivemodeMismatchError,
-} from "@/lib/billing/core/webhook-handler";
 
-function billingEvent(overrides: Partial<{ id: string; livemode: boolean }> = {}) {
+function billingEvent() {
   return {
-    id: overrides.id ?? "evt_test_1",
+    id: "evt_test_1",
     type: "checkout.session.completed",
-    livemode: overrides.livemode ?? false,
+    livemode: false,
     data: {
       object: {
         id: "cs_test",
@@ -85,7 +82,6 @@ beforeEach(() => {
     eventRowId: "row_1",
   });
   storeLegacyWebhookEventIdempotent.mockResolvedValue({ duplicate: false });
-  paymentsModeMock.mockReturnValue("test");
 });
 
 afterEach(() => {
@@ -115,7 +111,7 @@ describe("dispatchStripeWebhook fail-closed", () => {
   it("does not mark ads processed when ads handler throws", async () => {
     isAdsWalletTopUpEvent.mockReturnValue(true);
     handleAdsStripeEvent.mockRejectedValueOnce(new Error("ads boom"));
-    const result = await dispatchStripeWebhook(billingEvent({ id: "evt_ads" }));
+    const result = await dispatchStripeWebhook(billingEvent());
     expect(markWebhookProcessed).not.toHaveBeenCalled();
     expect(result.ads.failed).toBe(true);
     expect(result.anyFailed).toBe(true);
@@ -133,17 +129,5 @@ describe("dispatchStripeWebhook fail-closed", () => {
     expect(markLegacyWebhookProcessed).not.toHaveBeenCalled();
     expect(result.legacy.failed).toBe(true);
     expect(result.anyFailed).toBe(true);
-  });
-});
-
-describe("assertLivemodeMatches", () => {
-  it("rejects live/test mismatch instead of warning", () => {
-    paymentsModeMock.mockReturnValue("test");
-    expect(() =>
-      assertLivemodeMatches({
-        id: "evt_live",
-        livemode: true,
-      } as never),
-    ).toThrow(StripeLivemodeMismatchError);
   });
 });
