@@ -6,21 +6,29 @@ import {
 } from "@/lib/ads/billing/stripe-webhook";
 import {
   handleStripeBillingEvent,
+  markWebhookFailed,
   markWebhookProcessed,
+  markWebhookQuarantined,
   storeWebhookEventIdempotent,
 } from "@/lib/billing/core/webhook-handler";
+import {
+  assertLivemodeMatches,
+  StripeLivemodeMismatchError,
+} from "@/lib/billing/core/webhook-livemode";
 import { getStripeClient } from "@/lib/stripe/client";
 import { isStripeSdkAvailable, stripeConfig } from "@/lib/stripe/config";
 import {
   handleLegacyStripeEvent,
+  markLegacyWebhookFailed,
   markLegacyWebhookProcessed,
+  markLegacyWebhookQuarantined,
   storeLegacyWebhookEventIdempotent,
 } from "@/lib/stripe/legacy-webhooks";
 import { legacyInvoiceIdFromMetadata } from "@/lib/stripe/metadata";
 
 export function constructStripeWebhookEvent(
   rawBody: string,
-  signature: string
+  signature: string,
 ): Stripe.Event {
   const stripe = getStripeClient();
   if (!stripeConfig.webhookSecret) {
@@ -29,7 +37,7 @@ export function constructStripeWebhookEvent(
   return stripe.webhooks.constructEvent(
     rawBody,
     signature,
-    stripeConfig.webhookSecret
+    stripeConfig.webhookSecret,
   );
 }
 
@@ -85,35 +93,61 @@ function shouldHandleAds(event: Stripe.Event): boolean {
   return isAdsWalletTopUpEvent(event);
 }
 
+export type StripeWebhookBranchResult = {
+  duplicate: boolean;
+  processed: boolean;
+  failed: boolean;
+  quarantined: boolean;
+};
+
 /**
  * Dispatch verified webhook to billing-core, Ads wallet, and/or legacy Invoice handlers.
+ * Handler failures leave the event retryable (not marked processed) and surface via failed=true.
  */
 export async function dispatchStripeWebhook(event: Stripe.Event): Promise<{
-  billing: { duplicate: boolean; processed: boolean };
-  legacy: { duplicate: boolean; processed: boolean };
-  ads: { duplicate: boolean; processed: boolean };
+  billing: StripeWebhookBranchResult;
+  legacy: StripeWebhookBranchResult;
+  ads: StripeWebhookBranchResult;
+  hasFailure: boolean;
 }> {
+  const empty = (): StripeWebhookBranchResult => ({
+    duplicate: false,
+    processed: false,
+    failed: false,
+    quarantined: false,
+  });
+
   const result = {
-    billing: { duplicate: false, processed: false },
-    legacy: { duplicate: false, processed: false },
-    ads: { duplicate: false, processed: false },
+    billing: empty(),
+    legacy: empty(),
+    ads: empty(),
+    hasFailure: false,
   };
 
   if (shouldHandleAds(event)) {
     const stored = await storeWebhookEventIdempotent(
       `ads:${event.id}`,
       event.type,
-      event as unknown as object
+      event as unknown as object,
     );
     result.ads.duplicate = stored.duplicate;
     if (!stored.duplicate) {
       try {
+        assertLivemodeMatches(event);
         await handleAdsStripeEvent(event);
+        await markWebhookProcessed(stored.eventRowId);
+        result.ads.processed = true;
       } catch (err) {
         console.error("Stripe Ads webhook handler error", err);
+        if (err instanceof StripeLivemodeMismatchError) {
+          await markWebhookQuarantined(stored.eventRowId, err);
+          result.ads.quarantined = true;
+        } else {
+          await markWebhookFailed(stored.eventRowId, err);
+          result.ads.failed = true;
+        }
+        result.hasFailure = true;
       }
-      await markWebhookProcessed(stored.eventRowId);
-      result.ads.processed = true;
     }
   }
 
@@ -121,17 +155,25 @@ export async function dispatchStripeWebhook(event: Stripe.Event): Promise<{
     const stored = await storeWebhookEventIdempotent(
       event.id,
       event.type,
-      event as unknown as object
+      event as unknown as object,
     );
     result.billing.duplicate = stored.duplicate;
     if (!stored.duplicate) {
       try {
         await handleStripeBillingEvent(event);
+        await markWebhookProcessed(stored.eventRowId);
+        result.billing.processed = true;
       } catch (err) {
         console.error("Stripe billing webhook handler error", err);
+        if (err instanceof StripeLivemodeMismatchError) {
+          await markWebhookQuarantined(stored.eventRowId, err);
+          result.billing.quarantined = true;
+        } else {
+          await markWebhookFailed(stored.eventRowId, err);
+          result.billing.failed = true;
+        }
+        result.hasFailure = true;
       }
-      await markWebhookProcessed(stored.eventRowId);
-      result.billing.processed = true;
     }
   }
 
@@ -139,17 +181,25 @@ export async function dispatchStripeWebhook(event: Stripe.Event): Promise<{
     const stored = await storeLegacyWebhookEventIdempotent(
       event.id,
       event.type,
-      event as unknown as object
+      event as unknown as object,
     );
     result.legacy.duplicate = stored.duplicate;
     if (!stored.duplicate) {
       try {
         await handleLegacyStripeEvent(event);
+        await markLegacyWebhookProcessed(event.id);
+        result.legacy.processed = true;
       } catch (err) {
         console.error("Stripe legacy webhook handler error", err);
+        if (err instanceof StripeLivemodeMismatchError) {
+          await markLegacyWebhookQuarantined(event.id, err);
+          result.legacy.quarantined = true;
+        } else {
+          await markLegacyWebhookFailed(event.id, err);
+          result.legacy.failed = true;
+        }
+        result.hasFailure = true;
       }
-      await markLegacyWebhookProcessed(event.id);
-      result.legacy.processed = true;
     }
   }
 
@@ -158,7 +208,7 @@ export async function dispatchStripeWebhook(event: Stripe.Event): Promise<{
 
 export async function parseAndProcessWebhookRequest(
   rawBody: string,
-  signature: string | null
+  signature: string | null,
 ): Promise<
   | {
       ok: true;
@@ -188,6 +238,20 @@ export async function parseAndProcessWebhookRequest(
   }
 
   const dispatched = await dispatchStripeWebhook(event);
+  if (dispatched.hasFailure) {
+    const quarantined =
+      dispatched.billing.quarantined ||
+      dispatched.legacy.quarantined ||
+      dispatched.ads.quarantined;
+    return {
+      ok: false,
+      status: quarantined ? 409 : 500,
+      message: quarantined
+        ? "Stripe livemode mismatch; event quarantined"
+        : "Webhook handler failed; event left retryable",
+    };
+  }
+
   return {
     ok: true,
     billing: { duplicate: dispatched.billing.duplicate },

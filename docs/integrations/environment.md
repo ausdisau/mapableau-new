@@ -43,6 +43,27 @@ Always required when the app runs against a database.
 - `XERO_CLIENT_ID`
 - `XERO_CLIENT_SECRET`
 
+### Direct Xero (`XERO_DIRECT_ENABLED=true`)
+
+- Same OAuth client vars as above (`XERO_CLIENT_ID`, `XERO_CLIENT_SECRET`)
+- Optional: `XERO_WEBHOOK_KEY` for signed webhooks
+- Keeps placeholders until flag is on; never auto-authorise invoices
+
+### Deputy (`DEPUTY_ENABLED=true`)
+
+- `DEPUTY_CLIENT_ID`
+- `DEPUTY_CLIENT_SECRET`
+- `DEPUTY_OAUTH_REDIRECT_URI`
+- `DEPUTY_WEBHOOK_VERIFICATION_MODE=disabled` (or `enterprise_hmac`)
+
+### Shared native integration kernel
+
+- `MAPABLE_INTEGRATIONS_OUTBOX_ENABLED=false`
+- `MAPABLE_INTEGRATIONS_DRY_RUN=true`
+- `STRIPE_DIRECT_BOOKING_ENABLED=false`
+
+See [native-providers-runbook.md](./native-providers-runbook.md).
+
 ### Keycloak (`KEYCLOAK_ENABLED=true`)
 
 - `KEYCLOAK_BASE_URL`
