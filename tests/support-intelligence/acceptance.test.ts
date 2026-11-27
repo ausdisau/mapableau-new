@@ -376,9 +376,9 @@ describe("Support Intelligence v0.1 acceptance", () => {
     expect(supportIntelligenceFlags.spiderEnabled).toBe(false);
   });
 
-  it("strips script and style blocks even when closing tags have whitespace", () => {
+  it("strips script and style blocks even when closing tags are malformed", () => {
     const excerpt = stripHtmlToExcerpt(
-      "<p>Hello</p><script>alert(1)</script ><style>body{}</style >World",
+      "<p>Hello</p><script>alert(1)</script\t\n bar><style>body{}</style >World",
     );
     expect(excerpt).toBe("Hello World");
     expect(excerpt).not.toContain("alert");

@@ -25,12 +25,12 @@ export type CrawlPageResult = {
 
 /**
  * Strip script/style blocks before tag removal.
- * Closing tags may include whitespace before '>' (CodeQL: js/bad-tag-filter).
+ * Closing tags may include whitespace or other junk before '>' (CodeQL: js/bad-tag-filter).
  */
 export function stripHtmlToExcerpt(html: string, maxLen = 2000): string {
   return html
-    .replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, " ")
-    .replace(/<style\b[^>]*>[\s\S]*?<\/style\s*>/gi, " ")
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script\b[^>]*>/gi, " ")
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style\b[^>]*>/gi, " ")
     .replace(/<[^>]+>/g, " ")
     .replace(/\s+/g, " ")
     .trim()
@@ -141,7 +141,7 @@ async function fetchCompatPage(
   }
 
   const html = (await res.text()).slice(0, 200_000);
-  const titleMatch = html.match(/<title\b[^>]*>([^<]*)<\/title\s*>/i);
+  const titleMatch = html.match(/<title\b[^>]*>([^<]*)<\/title\b[^>]*>/i);
   const textExcerpt = stripHtmlToExcerpt(html);
 
   return {
