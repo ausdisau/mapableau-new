@@ -307,7 +307,12 @@ export function CareSchedulerBoard({
             ) : null}
           </div>
         ) : viewerRole === "provider" ? (
-          <div className="max-w-full overflow-x-auto rounded-xl border border-border" tabIndex={0} aria-label="Roster matrix; scroll horizontally for other days">
+          <div
+            className="max-w-full overflow-x-auto rounded-xl border border-border"
+            role="region"
+            tabIndex={0}
+            aria-label="Roster matrix; scroll horizontally for other days"
+          >
             <table className="w-full min-w-[1030px] border-collapse text-left text-sm">
               <caption className="sr-only">Workers by day of week; unallocated shifts have a separate row</caption>
               <thead className="bg-muted/50">
