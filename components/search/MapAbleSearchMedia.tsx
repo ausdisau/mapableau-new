@@ -3,9 +3,9 @@
 import Image from "next/image";
 import { useEffect, useId, useState } from "react";
 
+import { cn } from "@/app/lib/utils";
 import { MAPABLE_LOGO_SRC, MAPABLE_LOGO_ALT } from "@/lib/brand/constants";
 import { mapableCareFocusRing } from "@/lib/marketing/mapable-care-tokens";
-import { cn } from "@/app/lib/utils";
 
 const CONCEPT_CAPTION =
   "Concept visualisation — routes illustrative; accessibility not verified.";
@@ -128,6 +128,7 @@ export function MapAbleSearchMedia({ className, campaignMediaReady }: Props) {
             preload="none"
             poster={SEARCH_CAMPAIGN_POSTER_SRC}
           >
+            <track kind="captions" srcLang="en" label="Captions unavailable" />
             <source src={SEARCH_CAMPAIGN_STORYBOARD_SRC} type="video/mp4" />
             Your browser does not support the storyboard video. Use the still
             poster and caption instead.

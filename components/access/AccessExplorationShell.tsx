@@ -4,7 +4,6 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { AccessFitBreakdownV2 } from "@/components/access-fit/AccessFitBreakdownV2";
 import { AccessEvidenceSummaryPanel } from "@/components/access/AccessEvidenceSummaryPanel";
 import { AccessMobilityPreferences } from "@/components/access/AccessMobilityPreferences";
 import { AccessSourceLegend } from "@/components/access/AccessSourceLegend";
@@ -12,8 +11,10 @@ import {
   GccsaRegionSelector,
   type AccessRegionSelection,
 } from "@/components/access/GccsaRegionSelector";
+import { AccessFitBreakdownV2 } from "@/components/access-fit/AccessFitBreakdownV2";
 import { AccessRequirementsPanel } from "@/components/access-fit/AccessRequirementsPanel";
 import { QuickObservationDialog } from "@/components/accessibility-map/QuickObservationDialog";
+import { useGccsaBoundary } from "@/hooks/access/useGccsaBoundary";
 import type { AccessExplorationDto } from "@/lib/access/experience/access-exploration-dto";
 import {
   ACCESS_GO_HANDOFF_SANDBOX_NOTICE,
@@ -40,12 +41,11 @@ import type {
   AccessRequirementProfile,
 } from "@/lib/access/experience/types";
 import { calculateAccessFitV2 } from "@/lib/access/fit/calculate-access-fit-v2";
+import { filterPlacesToGccsaRegion } from "@/lib/access/regions/filter-access-places";
 import {
   ACCESS_NATIONAL_VIEW,
   getCapitalRegionBySlug,
 } from "@/lib/access/regions/gccsa";
-import { filterPlacesToGccsaRegion } from "@/lib/access/regions/filter-access-places";
-import { useGccsaBoundary } from "@/hooks/access/useGccsaBoundary";
 import { GAIS_EVIDENCE_STATE_LABELS } from "@/lib/gais/contracts/evidence";
 
 const AccessMap = dynamic(

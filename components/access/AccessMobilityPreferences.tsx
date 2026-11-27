@@ -1,7 +1,6 @@
 "use client";
 
-import type { AccessRequirementProfile } from "@/lib/access/experience/types";
-import type { MobilityAidPreference } from "@/lib/access/experience/types";
+import type { AccessRequirementProfile , MobilityAidPreference } from "@/lib/access/experience/types";
 import { mapableInteractiveFocusRing } from "@/lib/marketing/mapable-care-tokens";
 
 const MOBILITY_OPTIONS: Array<{

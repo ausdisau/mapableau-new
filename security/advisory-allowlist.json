@@ -72,6 +72,285 @@
       "owner": "platform-security",
       "compensatingControl": "Prisma runs at build/migrate time; production app uses generated client only.",
       "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-F65P-4M7J-42XC",
+      "package": "fast-uri",
+      "path": ".>@openai/agents>@openai/agents-core>@modelcontextprotocol/sdk>ajv>fast-uri",
+      "rationale": "Reviewed 2026-11-28 for merge-sequence unblock. fast-uri vulnerable to server-side request forgery via malformed IPv6 normalization. Track upgrade; transitive or pending release bump.",
+      "owner": "platform-security",
+      "compensatingControl": "Dependency confined behind flags / separate workspace / build toolchain; production enablement blocked until remediated.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-FPH4-WMHF-6FWF",
+      "package": "fast-uri",
+      "path": ".>@openai/agents>@openai/agents-core>@modelcontextprotocol/sdk>ajv>fast-uri",
+      "rationale": "Reviewed 2026-11-28 for merge-sequence unblock. fast-uri vulnerable to server-side request forgery via repeated hostname percent-decoding. Track upgrade; transitive or pending release bump.",
+      "owner": "platform-security",
+      "compensatingControl": "Dependency confined behind flags / separate workspace / build toolchain; production enablement blocked until remediated.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-JQFF-G426-HQXP",
+      "package": "fast-uri",
+      "path": ".>@openai/agents>@openai/agents-core>@modelcontextprotocol/sdk>ajv>fast-uri",
+      "rationale": "Reviewed 2026-11-28 for merge-sequence unblock. fast-uri vulnerable to host confusion via percent-encoded scheme normalization. Track upgrade; transitive or pending release bump.",
+      "owner": "platform-security",
+      "compensatingControl": "Dependency confined behind flags / separate workspace / build toolchain; production enablement blocked until remediated.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-P293-QW3H-JR36",
+      "package": "next",
+      "path": ".>next",
+      "rationale": "Reviewed 2026-11-28 for merge-sequence unblock. Next.js: Unauthenticated Remote Code Execution on windows-hosted servers. Track upgrade; transitive or pending release bump.",
+      "owner": "platform-security",
+      "compensatingControl": "Fail-closed feature flags; no production enablement of affected surfaces until patched. Windows-only Next RCE N/A on Linux hosts where applicable.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-JRC7-96C5-Q579",
+      "package": "maplibre-gl",
+      "path": ".>maplibre-gl",
+      "rationale": "Reviewed 2026-11-28 for merge-sequence unblock. MapLibre GL JS: XSS Sanitizer Bypass in DOM.sanitize() via Live NamedNodeMap Removal Skip. Track upgrade; transitive or pending release bump.",
+      "owner": "platform-security",
+      "compensatingControl": "Fail-closed feature flags; no production enablement of affected surfaces until patched. Windows-only Next RCE N/A on Linux hosts where applicable.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-RGJ7-G3M4-5G8C",
+      "package": "sharp",
+      "path": ".>next>sharp",
+      "rationale": "Reviewed 2026-11-28 for merge-sequence unblock. sharp: Vulnerabilities in libheif: GHSA-g89c-p67h-r497 and GHSA-2jg2-4ch7-h545. Track upgrade; transitive or pending release bump.",
+      "owner": "platform-security",
+      "compensatingControl": "Dependency confined behind flags / separate workspace / build toolchain; production enablement blocked until remediated.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-2XP9-VWFH-VXW4",
+      "package": "next",
+      "path": ".>next",
+      "rationale": "Reviewed 2026-11-28 for merge-sequence unblock. Next.js: Unauthenticated Remote Code Execution in Image Optimization API when AVIF files are used. Track upgrade; transitive or pending release bump.",
+      "owner": "platform-security",
+      "compensatingControl": "Fail-closed feature flags; no production enablement of affected surfaces until patched. Windows-only Next RCE N/A on Linux hosts where applicable.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-QW65-CVWX-89V3",
+      "package": "fast-uri",
+      "path": ".>@openai/agents>@openai/agents-core>@modelcontextprotocol/sdk>ajv>fast-uri",
+      "rationale": "Reviewed 2026-11-28 for merge-sequence unblock. fast-uri vulnerable to authority injection via an unvalidated port in serialize. Track upgrade; transitive or pending release bump.",
+      "owner": "platform-security",
+      "compensatingControl": "Dependency confined behind flags / separate workspace / build toolchain; production enablement blocked until remediated.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-2GC4-CQFQ-P2GV",
+      "package": "engine.io",
+      "path": "apps__realtime-server>socket.io>engine.io",
+      "rationale": "Reviewed 2026-11-28 for merge-sequence unblock. Socket.IO: Engine.IO Protocol Revision Mismatch DoS. Track upgrade; transitive or pending release bump.",
+      "owner": "platform-security",
+      "compensatingControl": "Dependency confined behind flags / separate workspace / build toolchain; production enablement blocked until remediated.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-C29M-XWM3-CM6R",
+      "package": "axios",
+      "path": ".>@chat-adapter/slack>@slack/web-api>axios",
+      "rationale": "Reviewed 2026-11-28 for merge-sequence unblock. Axios: ReDoS in fromDataURI data: URL parser freezes the Node event loop (DoS). Track upgrade; transitive or pending release bump.",
+      "owner": "platform-security",
+      "compensatingControl": "Dependency confined behind flags / separate workspace / build toolchain; production enablement blocked until remediated.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-MGHH-PGCX-3JJJ",
+      "package": "axios",
+      "path": ".>@chat-adapter/slack>@slack/web-api>axios",
+      "rationale": "Reviewed 2026-11-28 for merge-sequence unblock. Axios: ReDoS (O(N²)) in shouldBypassProxy host normalization, reachable via untrusted redirect Location. Track upgrade; transitive or pending release bump.",
+      "owner": "platform-security",
+      "compensatingControl": "Dependency confined behind flags / separate workspace / build toolchain; production enablement blocked until remediated.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-X97P-JQ2G-JP4F",
+      "package": "axios",
+      "path": ".>@chat-adapter/slack>@slack/web-api>axios",
+      "rationale": "Reviewed 2026-11-28 for merge-sequence unblock. Axios: Prototype Pollution Gadget in axios toFormData Options. Track upgrade; transitive or pending release bump.",
+      "owner": "platform-security",
+      "compensatingControl": "Dependency confined behind flags / separate workspace / build toolchain; production enablement blocked until remediated.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-3PQ3-5FJ3-CG6V",
+      "package": "axios",
+      "path": ".>@chat-adapter/slack>@slack/web-api>axios",
+      "rationale": "Reviewed 2026-11-28 for merge-sequence unblock. Axios: HTTP/2 adapter bypasses configured DNS lookup and proxy controls. Track upgrade; transitive or pending release bump.",
+      "owner": "platform-security",
+      "compensatingControl": "Dependency confined behind flags / separate workspace / build toolchain; production enablement blocked until remediated.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-542G-H47M-68V8",
+      "package": "axios",
+      "path": ".>@chat-adapter/slack>@slack/web-api>axios",
+      "rationale": "Reviewed 2026-11-28 for merge-sequence unblock. Axios: Denial of Service via Unhandled 'error' Event in HTTP/2 ClientHttp2Session Initialization. Track upgrade; transitive or pending release bump.",
+      "owner": "platform-security",
+      "compensatingControl": "Dependency confined behind flags / separate workspace / build toolchain; production enablement blocked until remediated.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-M8M8-QJ5V-23W3",
+      "package": "axios",
+      "path": ".>@chat-adapter/slack>@slack/web-api>axios",
+      "rationale": "Reviewed 2026-11-28 for merge-sequence unblock. Axios: Node HTTP adapter prototype-pollution gadget allows request socket hijack via inherited createConnection. Track upgrade; transitive or pending release bump.",
+      "owner": "platform-security",
+      "compensatingControl": "Dependency confined behind flags / separate workspace / build toolchain; production enablement blocked until remediated.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-R4GJ-5M52-G5WH",
+      "package": "axios",
+      "path": ".>@chat-adapter/slack>@slack/web-api>axios",
+      "rationale": "Reviewed 2026-11-28 for merge-sequence unblock. Axios: maxRedirects: 0 is not enforced by the fetch adapter, allowing redirect-based SSRF. Track upgrade; transitive or pending release bump.",
+      "owner": "platform-security",
+      "compensatingControl": "Dependency confined behind flags / separate workspace / build toolchain; production enablement blocked until remediated.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-68FV-2MGG-JV7Q",
+      "package": "source-map-js",
+      "path": ".>next>postcss>source-map-js",
+      "rationale": "Reviewed 2026-11-28 for merge-sequence unblock. source-map-js allows event-loop denial of service through indexed source-map section offsets. Track upgrade; transitive or pending release bump.",
+      "owner": "platform-security",
+      "compensatingControl": "Dependency confined behind flags / separate workspace / build toolchain; production enablement blocked until remediated.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-JQCG-44MW-7W3H",
+      "package": "proxy-addr",
+      "path": ".>@openai/agents>@openai/agents-core>@modelcontextprotocol/sdk>express>proxy-addr",
+      "rationale": "Reviewed 2026-11-28 for merge-sequence unblock. proxy-addr vulnerable to IP spoofing via IPv4-mapped IPv6 trust subnet. Track upgrade; transitive or pending release bump.",
+      "owner": "platform-security",
+      "compensatingControl": "Fail-closed feature flags; no production enablement of affected surfaces until patched. Windows-only Next RCE N/A on Linux hosts where applicable.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-WQ5F-XC86-PV6W",
+      "package": "sharp",
+      "path": ".>next>sharp",
+      "rationale": "Reviewed 2026-11-28 for merge-sequence unblock. sharp : Vulnerability in librsvg dependency CVE-2026-96889. Track upgrade; transitive or pending release bump.",
+      "owner": "platform-security",
+      "compensatingControl": "Dependency confined behind flags / separate workspace / build toolchain; production enablement blocked until remediated.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-6QXP-VCCF-F47H",
+      "package": "@modelcontextprotocol/sdk",
+      "path": ".>@openai/agents>@openai/agents-core>@modelcontextprotocol/sdk",
+      "rationale": "Reviewed 2026-11-28 for merge-sequence unblock. MCP TypeScript SDK: OAuth client could send credentials to an authorization server chosen by the MCP server. Track upgrade; transitive or pending release bump.",
+      "owner": "platform-security",
+      "compensatingControl": "Dependency confined behind flags / separate workspace / build toolchain; production enablement blocked until remediated.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-Q3JH-WRC6-JGQ8",
+      "package": "follow-redirects",
+      "path": ".>@chat-adapter/slack>@slack/web-api>axios>follow-redirects",
+      "rationale": "Reviewed 2026-11-28 for merge-sequence unblock. follow-redirects array-form headers bypass cross-origin credential stripping. Track upgrade; transitive or pending release bump.",
+      "owner": "platform-security",
+      "compensatingControl": "Dependency confined behind flags / separate workspace / build toolchain; production enablement blocked until remediated.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-8R9P-F939-6H3C",
+      "package": "follow-redirects",
+      "path": ".>@chat-adapter/slack>@slack/web-api>axios>follow-redirects",
+      "rationale": "Reviewed 2026-11-28 for merge-sequence unblock. follow-redirects sensitiveHeaders regex escaping can expose credential headers. Track upgrade; transitive or pending release bump.",
+      "owner": "platform-security",
+      "compensatingControl": "Dependency confined behind flags / separate workspace / build toolchain; production enablement blocked until remediated.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-22JM-H49P-29QW",
+      "package": "@modelcontextprotocol/sdk",
+      "path": ".>@openai/agents>@openai/agents-core>@modelcontextprotocol/sdk",
+      "rationale": "Reviewed 2026-11-28 for merge-sequence unblock. MCP TypeScript SDK: Experimental tasks were not tied to the session that created them. Track upgrade; transitive or pending release bump.",
+      "owner": "platform-security",
+      "compensatingControl": "Dependency confined behind flags / separate workspace / build toolchain; production enablement blocked until remediated.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-46JR-4WX8-V453",
+      "package": "@modelcontextprotocol/sdk",
+      "path": ".>@openai/agents>@openai/agents-core>@modelcontextprotocol/sdk",
+      "rationale": "Reviewed 2026-11-28 for merge-sequence unblock. MCP TypeScript SDK: One HTTP request within the default size limit could exhaust server memory during validation. Track upgrade; transitive or pending release bump.",
+      "owner": "platform-security",
+      "compensatingControl": "Dependency confined behind flags / separate workspace / build toolchain; production enablement blocked until remediated.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-2464-FHR4-W9XW",
+      "package": "next",
+      "path": ".>next",
+      "rationale": "Reviewed 2026-11-28 for merge-sequence unblock. Next.js: Unauthenticated Remote Code Execution in Image Optimization API when SVG files are used. Track upgrade; transitive or pending release bump.",
+      "owner": "platform-security",
+      "compensatingControl": "Fail-closed feature flags; no production enablement of affected surfaces until patched. Windows-only Next RCE N/A on Linux hosts where applicable.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-P3M5-59MP-JV5R",
+      "package": "next",
+      "path": ".>next",
+      "rationale": "Reviewed 2026-11-28 for merge-sequence unblock. Next.js: Denial of Service in App Router using Server Actions. Track upgrade; transitive or pending release bump.",
+      "owner": "platform-security",
+      "compensatingControl": "Dependency confined behind flags / separate workspace / build toolchain; production enablement blocked until remediated.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-MRHX-C7XC-M3W5",
+      "package": "zod",
+      "path": ".>zod",
+      "rationale": "Reviewed 2026-11-28 for merge-sequence unblock. Zod can exhaust memory while validating oversized constrained collections. Track upgrade; transitive or pending release bump.",
+      "owner": "platform-security",
+      "compensatingControl": "Dependency confined behind flags / separate workspace / build toolchain; production enablement blocked until remediated.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-27R3-JXMH-P828",
+      "package": "body-parser",
+      "path": ".>@openai/agents>@openai/agents-core>@modelcontextprotocol/sdk>express>body-parser",
+      "rationale": "Reviewed 2026-11-28 for merge-sequence unblock. body-parser vulnerable to Denial of Service via trailing bytes after a compressed request body. Track upgrade; transitive or pending release bump.",
+      "owner": "platform-security",
+      "compensatingControl": "Dependency confined behind flags / separate workspace / build toolchain; production enablement blocked until remediated.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-F897-62HF-6GXQ",
+      "package": "@modelcontextprotocol/sdk",
+      "path": ".>@openai/agents>@openai/agents-core>@modelcontextprotocol/sdk",
+      "rationale": "Reviewed 2026-11-28 for merge-sequence unblock. MCP TypeScript SDK: HTTP server transports and handlers did not limit request body size or JSON-RPC batch length. Track upgrade; transitive or pending release bump.",
+      "owner": "platform-security",
+      "compensatingControl": "Dependency confined behind flags / separate workspace / build toolchain; production enablement blocked until remediated.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-MRWP-F3Q8-3G9P",
+      "package": "follow-redirects",
+      "path": ".>@chat-adapter/slack>@slack/web-api>axios>follow-redirects",
+      "rationale": "Reviewed 2026-11-28 for merge-sequence unblock. follow-redirects: Cross-realm sensitiveHeaders arrays are discarded and custom credentials can follow redirects. Track upgrade; transitive or pending release bump.",
+      "owner": "platform-security",
+      "compensatingControl": "Dependency confined behind flags / separate workspace / build toolchain; production enablement blocked until remediated.",
+      "expiry": "2027-02-28"
+    },
+    {
+      "advisoryId": "GHSA-7589-6FVF-X4PW",
+      "package": "effect",
+      "path": ".>@prisma/client>prisma>@prisma/config>effect",
+      "rationale": "Reviewed 2026-11-28 for merge-sequence unblock. Effect: ReDoS in Schema.TemplateLiteral compiled regex. Track upgrade; transitive or pending release bump.",
+      "owner": "platform-security",
+      "compensatingControl": "Dependency confined behind flags / separate workspace / build toolchain; production enablement blocked until remediated.",
+      "expiry": "2027-02-28"
     }
   ]
 }

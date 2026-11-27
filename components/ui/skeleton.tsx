@@ -1,7 +1,5 @@
 export { Skeleton } from "@mapable/ui";
 
-import type { HTMLAttributes } from "react";
-
 import { Skeleton } from "@mapable/ui";
 
 /** Non-interactive placeholder for loading grids — avoids layout shift. */
@@ -19,21 +17,6 @@ export function SearchResultCardSkeleton() {
         <Skeleton className="h-8 w-20" />
         <Skeleton className="h-8 w-24" />
       </div>
-    </div>
-  );
-}
-
-export function SearchResultGridSkeleton({ count = 4 }: { count?: number }) {
-  return (
-    <div
-      className="grid gap-4 sm:grid-cols-2"
-      role="status"
-      aria-busy="true"
-      aria-label="Loading search results"
-    >
-      {Array.from({ length: count }, (_, i) => (
-        <SearchResultCardSkeleton key={i} />
-      ))}
     </div>
   );
 }

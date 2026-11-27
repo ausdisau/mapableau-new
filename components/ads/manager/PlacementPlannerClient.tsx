@@ -445,7 +445,6 @@ export function PlacementPlannerClient(props: {
               <h3 className="text-sm font-medium">Delivery evidence CSV</h3>
               <pre
                 className="mt-2 overflow-x-auto rounded border border-border bg-muted/30 p-3 text-xs"
-                tabIndex={0}
               >
                 {deliveryCsv}
               </pre>

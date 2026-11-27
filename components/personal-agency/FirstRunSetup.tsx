@@ -175,6 +175,7 @@ export function FirstRunSetup() {
                     name="informationDensity"
                     checked={informationDensity === option.value}
                     onChange={() => setInformationDensity(option.value)}
+                    aria-label={option.label}
                   />
                   <span>
                     <span className="block font-semibold">{option.label}</span>
