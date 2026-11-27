@@ -49,6 +49,7 @@ export const INITIAL_INTEGRATION_KEYS = [
   "postgres",
   "stripe",
   "xero",
+  "deputy",
   "ndia",
   "keycloak",
   "maplibre",
