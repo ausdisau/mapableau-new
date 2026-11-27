@@ -1,0 +1,129 @@
+openapi: 3.0.3
+info:
+  title: MapAble Support Intelligence API
+  version: 0.1.0
+  description: |
+    Fail-closed Support Intelligence v0.1 contracts.
+    Booking, payment and autonomous dispatch remain disabled.
+    No invented registration, vacancy or competency claims.
+servers:
+  - url: /
+paths:
+  /api/support-intelligence/status:
+    get:
+      summary: Capability matrix
+      responses:
+        "200":
+          description: Flag and safeguard status
+  /api/support-intelligence/discover:
+    get:
+      summary: Paginated provider discovery (Spider)
+      parameters:
+        - in: query
+          name: cursor
+          schema: { type: string }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 200 }
+        - in: query
+          name: includeFixtures
+          schema: { type: string, enum: [true, false] }
+      responses:
+        "200":
+          description: Discovery page with provenance
+        "403":
+          description: Capability disabled
+        "429":
+          description: Rate limited
+  /api/support-intelligence/match:
+    post:
+      summary: SNA → SMA eligibility-first matching
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [participantId, answers, consentDraftProcessing]
+              properties:
+                participantId: { type: string }
+                answers:
+                  type: array
+                  items:
+                    type: object
+                    required: [domainId, intensity]
+                    properties:
+                      domainId: { type: string }
+                      intensity:
+                        type: string
+                        enum: [a_little, some, a_lot, all_the_time]
+                consentDraftProcessing: { type: boolean, enum: [true] }
+                consentWithdrawn: { type: boolean }
+                useSyntheticProviders: { type: boolean }
+      responses:
+        "200":
+          description: Explainable candidates; operational actions denied
+        "400":
+          description: Validation or consent failure
+        "403":
+          description: Capability disabled
+  /api/support-intelligence/regulatory:
+    get:
+      summary: Regulatory Evidence Gateway lookup
+      parameters:
+        - in: query
+          name: abn
+          schema: { type: string }
+        - in: query
+          name: providerName
+          schema: { type: string }
+        - in: query
+          name: directoryActive
+          schema: { type: string }
+        - in: query
+          name: sourceDate
+          schema: { type: string }
+      responses:
+        "200":
+          description: Evidence claims with explicit unknown/conflict states
+        "403":
+          description: Gateway disabled
+  /api/support-intelligence/worker-verification:
+    post:
+      summary: Authorised Worker Verification Gateway
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [workerProfileId, actorUserId, consentGranted]
+              properties:
+                workerProfileId: { type: string }
+                actorUserId: { type: string }
+                consentGranted: { type: boolean }
+                consentWithdrawn: { type: boolean }
+                internalScreeningStatus: { type: string, nullable: true }
+                identityTokens:
+                  type: array
+                  items: { type: string }
+      responses:
+        "200":
+          description: Internal status + unknown live screening
+        "403":
+          description: Consent missing/withdrawn or gateway disabled
+  /api/support-intelligence/demand:
+    get:
+      summary: Privacy-preserving demand aggregates
+      parameters:
+        - in: query
+          name: useSynthetic
+          schema: { type: string, enum: [true, false] }
+        - in: query
+          name: k
+          schema: { type: integer, minimum: 2, maximum: 50 }
+      responses:
+        "200":
+          description: Small-cell suppressed regional cells
+        "403":
+          description: Demand intelligence disabled

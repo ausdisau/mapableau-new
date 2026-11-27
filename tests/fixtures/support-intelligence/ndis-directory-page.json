@@ -1,0 +1,30 @@
+{
+  "date": "2026-11-01",
+  "data": [
+    {
+      "source_id": "eval-outlet-01",
+      "provider_name": "Evaluation Harbour Supports",
+      "ABN": "51824753556",
+      "Address": "1 Test St, Sydney NSW 2000",
+      "Active": 1,
+      "services": ["Daily personal activities", "Community participation"],
+      "prfsn": "Support Worker"
+    },
+    {
+      "source_id": "eval-outlet-01-dup",
+      "provider_name": "Evaluation Harbour Supports",
+      "ABN": "51824753556",
+      "Address": "1 Test St, Sydney NSW 2000",
+      "Active": 1,
+      "services": ["Daily personal activities"]
+    },
+    {
+      "source_id": "eval-outlet-02",
+      "provider_name": "Evaluation Yarra Care",
+      "ABN": "53004085616",
+      "Address": "2 Sample Rd, Melbourne VIC 3000",
+      "Active": 0,
+      "services": ["Support coordination"]
+    }
+  ]
+}
