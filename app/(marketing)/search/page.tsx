@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 
 import { MapAbleSearchHero } from "@/components/search/MapAbleSearchHero";
+import { MapAbleSearchWorkspace } from "@/components/search/MapAbleSearchWorkspace";
 import { canonicalAlternate } from "@/lib/config/canonical-url";
+import { shouldPopulateStIvesDemo } from "@/lib/search/demo/st-ives-search-demo";
 import { searchMapAble } from "@/lib/search/mapable-search-service";
 import {
   parseSearchSelectionFromParams,
@@ -20,9 +22,11 @@ type Params = {
   q?: string;
   vertical?: string;
   presentation?: string;
+  view?: string;
   tier?: string;
   state?: string;
   postcode?: string;
+  demo?: string;
 };
 
 export default async function MapAbleSearchPage({
@@ -32,6 +36,14 @@ export default async function MapAbleSearchPage({
 }) {
   const params = await searchParams;
   const selection = parseSearchSelectionFromParams(params);
+  const demoParam = typeof params.demo === "string" ? params.demo : null;
+  const useWorkspace = selection.presentation === "conversation";
+  const populateDemo = shouldPopulateStIvesDemo({
+    demoParam,
+    presentation: selection.presentation,
+    query: selection.query,
+  });
+
   const state =
     params.state &&
     ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "ACT", "NT"].includes(params.state)
@@ -41,14 +53,12 @@ export default async function MapAbleSearchPage({
     ? params.postcode
     : undefined;
 
-  const shouldRunWebSearch =
-    selection.presentation === "web" || Boolean(selection.query);
-
+  // Public discovery only for Web mode — never send conversation transcripts here.
   let response = null;
   let httpStatus: number | null = null;
   let error: string | null = null;
 
-  if (shouldRunWebSearch) {
+  if (selection.presentation === "web") {
     try {
       response = await searchMapAble({
         q: selection.query,
@@ -71,13 +81,20 @@ export default async function MapAbleSearchPage({
   return (
     <main
       id="main-content"
-      className="mx-auto max-w-6xl space-y-8 px-4 py-10 sm:py-14"
+      className="mx-auto max-w-7xl space-y-8 px-3 py-6 sm:px-4 sm:py-10"
     >
-      <MapAbleSearchHero
-        initialSelection={selection}
-        response={response}
-        status={status}
-      />
+      {useWorkspace ? (
+        <MapAbleSearchWorkspace
+          initialSelection={selection}
+          populateDemo={populateDemo}
+        />
+      ) : (
+        <MapAbleSearchHero
+          initialSelection={selection}
+          response={response}
+          status={status}
+        />
+      )}
     </main>
   );
 }

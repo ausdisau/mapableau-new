@@ -77,7 +77,10 @@ export function validateSearchQuery(raw: string): {
   query: string;
   error?: string;
 } {
-  const query = raw.replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim();
+  const query = raw
+    .replace(/[\u0000-\u001f\u007f]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
   if (query.length > SEARCH_QUERY_MAX) {
     return {
       ok: false,
@@ -99,7 +102,9 @@ export function isSearchCategory(value: string): value is SearchCategory {
   );
 }
 
-export function isSearchPresentation(value: string): value is SearchPresentation {
+export function isSearchPresentation(
+  value: string,
+): value is SearchPresentation {
   return value === "web" || value === "conversation";
 }
 
@@ -115,7 +120,10 @@ export function withPresentation(
   return { ...selection, presentation };
 }
 
-export function withTier(selection: SearchSelection, tier: SearchTier): SearchSelection {
+export function withTier(
+  selection: SearchSelection,
+  tier: SearchTier,
+): SearchSelection {
   return { ...selection, tier };
 }
 
@@ -135,15 +143,22 @@ export function parseSearchSelectionFromParams(
 ): SearchSelection {
   const qRaw = typeof params.q === "string" ? params.q : "";
   const { query } = validateSearchQuery(qRaw);
-  const categoryRaw = typeof params.vertical === "string" ? params.vertical : "all";
-  const presentationRaw =
-    typeof params.presentation === "string" ? params.presentation : "web";
+  const categoryRaw =
+    typeof params.vertical === "string" ? params.vertical : "all";
+  const presentationCandidate =
+    typeof params.presentation === "string"
+      ? params.presentation
+      : typeof params.view === "string"
+        ? params.view
+        : "web";
   const tierRaw = typeof params.tier === "string" ? params.tier : "quick";
 
   return createDefaultSearchSelection({
     query,
     category: isSearchCategory(categoryRaw) ? categoryRaw : "all",
-    presentation: isSearchPresentation(presentationRaw) ? presentationRaw : "web",
+    presentation: isSearchPresentation(presentationCandidate)
+      ? presentationCandidate
+      : "web",
     tier: isSearchTier(tierRaw) ? tierRaw : "quick",
   });
 }
@@ -172,7 +187,9 @@ export function resolveSearchUiStatus(input: {
  * Map discovery hits to a visible evidence status.
  * Imported outlets and navigation modules stay unknown unless a verified claim exists.
  */
-export function evidenceStatusForHit(hit: MapAbleSearchHit): SearchEvidenceStatus {
+export function evidenceStatusForHit(
+  hit: MapAbleSearchHit,
+): SearchEvidenceStatus {
   if (hit.kind === "provider_outlet") return "unknown";
   if (hit.provenance === "mapable_navigation") return "reported";
   return "unknown";
