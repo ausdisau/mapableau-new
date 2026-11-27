@@ -158,22 +158,25 @@ export async function lookupRegulatoryEvidence(
     humanReviewReasons,
   };
 
-  if (result.humanReviewRequired) {
-    await auditSupportIntelligence({
-      action: "support_intel.reg.conflict_queued",
-      actorUserId: input.actorUserId,
-      entityType: "RegulatoryEvidence",
-      entityId: input.abn ?? input.providerName ?? undefined,
-      metadata: { reasons: humanReviewReasons },
-    });
-  } else {
-    await auditSupportIntelligence({
-      action: "support_intel.reg.lookup",
-      actorUserId: input.actorUserId,
-      entityType: "RegulatoryEvidence",
-      entityId: input.abn ?? input.providerName ?? undefined,
-      metadata: { directoryActivity },
-    });
+  // Persist audit only for authenticated callers — prevents anonymous flood paths.
+  if (input.actorUserId) {
+    if (result.humanReviewRequired) {
+      await auditSupportIntelligence({
+        action: "support_intel.reg.conflict_queued",
+        actorUserId: input.actorUserId,
+        entityType: "RegulatoryEvidence",
+        entityId: input.abn ?? input.providerName ?? undefined,
+        metadata: { reasons: humanReviewReasons },
+      });
+    } else {
+      await auditSupportIntelligence({
+        action: "support_intel.reg.lookup",
+        actorUserId: input.actorUserId,
+        entityType: "RegulatoryEvidence",
+        entityId: input.abn ?? input.providerName ?? undefined,
+        metadata: { directoryActivity },
+      });
+    }
   }
 
   setCached(ck, result, 10 * 60 * 1000);

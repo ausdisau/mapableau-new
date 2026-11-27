@@ -73,7 +73,10 @@ paths:
           description: Capability disabled, withdrawn consent, or forbidden role
   /api/support-intelligence/regulatory:
     get:
-      summary: Regulatory Evidence Gateway lookup
+      summary: Regulatory Evidence Gateway lookup (session required)
+      description: |
+        Requires an authenticated session. Human-review tickets are only
+        enqueued for authenticated callers to prevent queue flooding.
       parameters:
         - in: query
           name: abn
@@ -90,6 +93,8 @@ paths:
       responses:
         "200":
           description: Evidence claims with explicit unknown/conflict states
+        "401":
+          description: Unauthenticated
         "403":
           description: Gateway disabled
   /api/support-intelligence/worker-verification:
