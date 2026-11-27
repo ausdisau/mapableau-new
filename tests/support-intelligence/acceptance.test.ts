@@ -35,7 +35,10 @@ import {
   createFixtureSpiderAdapter,
   SYNTHETIC_SPIDER_FIXTURES,
 } from "@/lib/support-intelligence/spider/fixture-adapter";
-import { stripHtmlToExcerpt } from "@/lib/support-intelligence/spider/crawlee-runner";
+import {
+  crawlApprovedUrls,
+  stripHtmlToExcerpt,
+} from "@/lib/support-intelligence/spider/crawlee-runner";
 import { runSpiderDiscovery } from "@/lib/support-intelligence/spider/orchestrator";
 import { mapServicesToTaxonomy } from "@/lib/support-intelligence/spider/taxonomy";
 import { lookupWorkerVerification } from "@/lib/support-intelligence/worker-verification/gateway";
@@ -380,5 +383,19 @@ describe("Support Intelligence v0.1 acceptance", () => {
     expect(excerpt).toBe("Hello World");
     expect(excerpt).not.toContain("alert");
     expect(excerpt).not.toContain("body{}");
+  });
+
+  it("stops crawl when kill switch is on even if crawl flag remains true", async () => {
+    process.env.MAPABLE_SUPPORT_INTEL_ENABLED = "true";
+    process.env.MAPABLE_SUPPORT_INTEL_SPIDER_ENABLED = "true";
+    process.env.MAPABLE_SUPPORT_INTEL_SPIDER_CRAWL_ENABLED = "true";
+    process.env.MAPABLE_SUPPORT_INTEL_KILL_SWITCH = "true";
+    const results = await crawlApprovedUrls({
+      urls: [
+        "https://www.ndiscommission.gov.au/provider-registration/find-registered-provider",
+      ],
+    });
+    expect(results[0]?.allowed).toBe(false);
+    expect(results[0]?.denialReason).toBe("kill_switch");
   });
 });

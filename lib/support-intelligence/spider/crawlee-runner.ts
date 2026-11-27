@@ -1,4 +1,7 @@
-import { supportIntelligenceFlags } from "@/lib/support-intelligence/config/feature-flags";
+import {
+  isCapabilityEnabled,
+  supportIntelligenceFlags,
+} from "@/lib/support-intelligence/config/feature-flags";
 import { buildProvenance } from "@/lib/support-intelligence/provenance";
 import { checkDistributedRateLimit } from "@/lib/support-intelligence/rate-limit";
 import {
@@ -233,18 +236,32 @@ export async function crawlApprovedUrls(input: {
   allowlist?: CrawlAllowlistEntry[];
   signal?: AbortSignal;
 }): Promise<CrawlPageResult[]> {
-  if (!supportIntelligenceFlags.spiderCrawlEnabled) {
+  // Honour master kill switch / Spider capability as well as the crawl flag.
+  const crawlLive =
+    isCapabilityEnabled("spider") &&
+    supportIntelligenceFlags.spiderCrawlEnabled;
+
+  if (!crawlLive) {
+    const denialReason = supportIntelligenceFlags.killSwitch
+      ? "kill_switch"
+      : !isCapabilityEnabled("spider")
+        ? "spider_disabled"
+        : "crawl_flag_disabled";
     return input.urls.map((url) => ({
       url,
       status: 0,
       title: null,
       textExcerpt: "",
       allowed: false,
-      denialReason: "crawl_flag_disabled",
+      denialReason,
       provenance: buildProvenance({
         sourceKind: "approved_crawl",
         sourceUrl: url,
-        raw: { crawlFlag: false },
+        raw: {
+          crawlFlag: supportIntelligenceFlags.spiderCrawlEnabled,
+          spiderEnabled: isCapabilityEnabled("spider"),
+          killSwitch: supportIntelligenceFlags.killSwitch,
+        },
       }),
       engine: "fetch_compat",
     }));
