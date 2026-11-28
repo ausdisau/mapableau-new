@@ -101,7 +101,7 @@ MapAble Access and GAIS maintainers should own any future crosswalk. A local-gov
 | Hours, keys, restrictions and temporary closure           | Keep conditions and their dates separately from stable asset characteristics. Do not infer open-now or functioning equipment.                                                                                               |
 | Publisher, release, licence and attribution               | Archive release-specific rights and evidence of permission before bulk redistribution or OSM contribution. A public webpage is insufficient.                                                                                |
 
-Related measurement requirements are in the [built-environment brief](community-infrastructure-built-environment.md); statistical-geography joins have separate gates in the [ABS context brief](community-infrastructure-abs-context.md).
+Related measurement requirements are in the [built-environment brief](community-infrastructure-built-environment.md); statistical-geography joins have separate gates in the [ABS context brief](community-infrastructure-abs-context.md). The [Australian data atlas reference brief](community-infrastructure-data-atlas.md) distinguishes national discovery tools, ABS statistical geographies and the implemented NSW boundary source.
 
 ## Manual refresh, tests and failure recovery
 

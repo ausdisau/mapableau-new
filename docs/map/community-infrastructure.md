@@ -215,6 +215,8 @@ The supplied NHVR planner reference is assessed in the [routing integration brie
 
 The [built-environment evidence brief](community-infrastructure-built-environment.md) checks the supplied architectural article against official Australian sources and proposes scoped measurement evidence without an automatic compliance result. The [PubMed and JSTOR research brief](community-infrastructure-research.md) distinguishes participant research, interpretive scholarship and design inferences; software tests do not establish participant outcomes. The [ABS context brief](community-infrastructure-abs-context.md) assesses the supplied API description for future area-level context, with explicit geographic and measure boundaries. The [healthcare public-data brief](community-infrastructure-healthcare.md) records the inspected US catalog limits and Australian facility-identity candidates; a healthcare listing does not establish physical access.
 
+The [local-government data atlas brief](community-infrastructure-data-atlas.md) connects this layer to verified Digital Atlas of Australia and ABS Data by Region sources for future national boundary discovery and area-level context. It keeps current administrative boundaries, statistical LGA vintages, observation years and facility evidence distinct. No atlas population values or national facility coverage are added by this source assessment.
+
 ## Failure recovery, rollback and next gates
 
 | Condition                                       | Behaviour or required response                                                                                                            |
