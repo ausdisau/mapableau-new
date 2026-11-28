@@ -191,10 +191,10 @@ For an already downloaded raw response, the script also accepts `--from-file ARE
 Run the focused tests:
 
 ```bash
-corepack pnpm exec vitest run tests/community-infrastructure.test.ts tests/community-infrastructure-api.test.ts tests/community-infrastructure-councils.test.ts tests/community-infrastructure-ui.test.tsx tests/map-geojson.test.ts
+corepack pnpm exec vitest run tests/community-infrastructure.test.ts tests/community-infrastructure-api.test.ts tests/community-infrastructure-councils.test.ts tests/community-infrastructure-ui.test.tsx tests/community-infrastructure-map.test.tsx tests/map-geojson.test.ts
 ```
 
-The combined implementation review recorded 98 passing focused tests: 31 normalization/source-semantics, 35 API/snapshot/linkage, 17 boundary geometry/provenance, 13 interface and two shared map-GeoJSON tests. The full TypeScript check passed with a 6,144 MB Node heap limit. The pull request records deployment and browser evidence for its exact commit. Local tests and browser checks do not establish a production release or complete assistive-technology assessment.
+The combined implementation review recorded 101 passing focused tests: 31 normalization/source-semantics, 35 API/snapshot/linkage, 17 boundary geometry/provenance, 13 interface, three real-Leaflet marker-interaction and two shared map-GeoJSON tests. The full TypeScript check passed with a 6,144 MB Node heap limit. Hosted review exposed missing Enter/Space activation on custom markers; the real-renderer tests reproduce that failure and verify explicit keyboard activation, default prevention, repeat handling, labels, mouse behaviour and cleanup. The pull request records deployment and browser evidence for its exact commit. Local tests and browser checks do not establish a production release or complete assistive-technology assessment.
 
 Review data diffs, attribution, category semantics, source timestamps and test output before publishing a refreshed snapshot. The importer bounds source bytes/elements, rejects partial/capped/error responses, refuses unexplained empty refreshes and replaces the snapshot atomically only after the selected refresh succeeds. No automatic upstream OSM contribution occurs.
 

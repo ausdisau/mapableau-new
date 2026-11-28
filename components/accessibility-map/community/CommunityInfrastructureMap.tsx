@@ -88,9 +88,21 @@ export default function CommunityInfrastructureMap({
             alt: label,
             keyboard: true,
             riseOnHover: true,
-          }).addTo(instance!);
-          marker.getElement()?.setAttribute("aria-label", label);
+          });
+          // Before fitBounds, Leaflet may defer creating the marker element.
+          marker.on("add", () => {
+            marker.getElement()?.setAttribute("aria-label", label);
+          });
           marker.on("click", () => onSelect(feature.id));
+          marker.on("keydown", ({ originalEvent }) => {
+            if (originalEvent.key !== "Enter" && originalEvent.key !== " ")
+              return;
+            // A divIcon has button semantics but no native keyboard activation.
+            // Consume the key once here, including Space's page-scroll default.
+            L.DomEvent.stop(originalEvent);
+            if (!originalEvent.repeat) onSelect(feature.id);
+          });
+          marker.addTo(instance!);
           bounds.extend([latitude, longitude]);
         });
 
