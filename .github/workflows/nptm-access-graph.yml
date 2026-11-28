@@ -1,0 +1,85 @@
+name: NPTM Access Graph
+
+on:
+  pull_request:
+    paths:
+      - "lib/access/data-sources/registry.ts"
+      - "lib/access/data-sources/nptm.ts"
+      - "lib/access/data-sources/nptm/**"
+      - "lib/access/intelligence-next/ontology/**"
+      - "tests/access-infrastructure/nptm-*.test.ts"
+      - ".github/workflows/nptm-access-graph.yml"
+  push:
+    branches: [main]
+    paths:
+      - "lib/access/data-sources/registry.ts"
+      - "lib/access/data-sources/nptm.ts"
+      - "lib/access/data-sources/nptm/**"
+      - "lib/access/intelligence-next/ontology/**"
+      - "tests/access-infrastructure/nptm-*.test.ts"
+      - ".github/workflows/nptm-access-graph.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: nptm-access-graph-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  nptm-regression:
+    name: NPTM regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NODE_OPTIONS: --max-old-space-size=4096
+      NEXTAUTH_SECRET: ci-nextauth-secret-not-for-production-use-32chars
+      NEXTAUTH_URL: http://localhost:3000
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mapable_ci?schema=public
+      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/mapable_ci?schema=public
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Prisma validate
+        run: pnpm exec prisma validate
+
+      - name: Prisma generate
+        run: pnpm exec prisma generate
+
+      - name: Type-check
+        run: pnpm type-check
+
+      - name: Lint NPTM slice
+        env:
+          ESLINT_CI_LIGHT: "1"
+        run: >-
+          pnpm exec eslint
+          lib/access/data-sources/nptm.ts
+          lib/access/data-sources/nptm
+          lib/access/intelligence-next/ontology/index.ts
+          lib/access/intelligence-next/ontology/nptm-extension.ts
+          tests/access-infrastructure/nptm-ingestion-service.test.ts
+          tests/access-infrastructure/nptm-job-metadata.test.ts
+          tests/access-infrastructure/nptm-normaliser.test.ts
+          --max-warnings 0
+
+      - name: NPTM regression tests
+        run: >-
+          pnpm exec vitest run
+          tests/access-infrastructure/nptm-normaliser.test.ts
+          tests/access-infrastructure/nptm-job-metadata.test.ts
+          tests/access-infrastructure/nptm-ingestion-service.test.ts
