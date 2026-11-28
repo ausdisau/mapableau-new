@@ -1,0 +1,49 @@
+.map {
+  height: 440px;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid #cbd5e1;
+  border-radius: 1rem;
+  background: #f6fbfc;
+}
+
+.map:focus-visible,
+.map :global(.leaflet-marker-icon:focus-visible),
+.map :global(.leaflet-control-zoom a:focus-visible) {
+  outline: 3px solid #0c1833;
+  outline-offset: 3px;
+}
+
+.map :global(.leaflet-control-zoom a) {
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
+}
+
+.marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+}
+
+.markerSymbol {
+  display: flex;
+  width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+  border-radius: 50%;
+  color: white;
+  font-size: 16px;
+  font-weight: 800;
+  box-shadow: 0 1px 4px #0c183366;
+}
+
+@media (max-width: 640px) {
+  .map {
+    height: 360px;
+  }
+}

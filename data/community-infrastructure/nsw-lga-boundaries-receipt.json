@@ -1,0 +1,113 @@
+{
+  "retrievedAt": "2026-11-28T10:34:26.484467+00:00",
+  "serviceUrl": "https://portal.spatial.nsw.gov.au/server/rest/services/NSW_Administrative_Boundaries_Theme_multiCRS/FeatureServer/8",
+  "sourceItemId": "3c8278222ddf4908a9a6e256d9847e6f",
+  "serviceItemId": "54c7b3b18680416a8b4496eceb6740fa",
+  "queryUrl": "https://portal.spatial.nsw.gov.au/server/rest/services/NSW_Administrative_Boundaries_Theme_multiCRS/FeatureServer/8/query?where=1%3D1&geometry=150.675%2C-33.835%2C151.025%2C-33.735&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=OBJECTID%2Clganame%2Ccouncilname%2Cabscode%2Cshapeuuid%2Cmodifieddate%2Clastupdate%2Cstartdate%2Cenddate&outSR=4326&returnGeometry=true&f=geojson",
+  "queryParameters": {
+    "where": "1=1",
+    "geometry": "150.675,-33.835,151.025,-33.735",
+    "geometryType": "esriGeometryEnvelope",
+    "inSR": "4326",
+    "spatialRel": "esriSpatialRelIntersects",
+    "outFields": "OBJECTID,lganame,councilname,abscode,shapeuuid,modifieddate,lastupdate,startdate,enddate",
+    "outSR": "4326",
+    "returnGeometry": "true",
+    "f": "geojson"
+  },
+  "inputEnvelopeWgs84": [
+    150.675,
+    -33.835,
+    151.025,
+    -33.735
+  ],
+  "sourceSpatialReference": 7844,
+  "requestedOutputSpatialReference": 4326,
+  "httpStatus": 200,
+  "responseHeaders": {
+    "Date": "Sat, 28 Nov 2026 10:34:25 GMT",
+    "Content-Type": "application/geo+json;charset=UTF-8",
+    "ETag": "\"f912dbe\""
+  },
+  "byteLength": 1278750,
+  "sha256": "d848c32a8c3c9a57c2f7b44f8d21198d8f51fa538dbef71a69a10e7b6eacf8eb",
+  "featureCount": 6,
+  "features": [
+    {
+      "OBJECTID": 4264,
+      "lganame": "BLACKTOWN",
+      "councilname": "BLACKTOWN CITY COUNCIL",
+      "abscode": 750,
+      "shapeuuid": "363a8b7b-7c9b-396d-b87b-d8ecd245576c",
+      "modifieddate": 1593442879000,
+      "lastupdate": 1593443984000,
+      "startdate": 1593443522000,
+      "enddate": 32503680000000
+    },
+    {
+      "OBJECTID": 5228,
+      "lganame": "CUMBERLAND",
+      "councilname": "CUMBERLAND COUNCIL",
+      "abscode": 2380,
+      "shapeuuid": "df1a8793-19fb-3e4c-a221-bc26722d4be6",
+      "modifieddate": 1625669820000,
+      "lastupdate": 1625669869000,
+      "startdate": 1625669846000,
+      "enddate": 32503680000000
+    },
+    {
+      "OBJECTID": 5750,
+      "lganame": "FAIRFIELD",
+      "councilname": "FAIRFIELD CITY COUNCIL",
+      "abscode": 2850,
+      "shapeuuid": "cf9dcb05-7535-3760-94a2-7f1c49f72b7c",
+      "modifieddate": 1642687998000,
+      "lastupdate": 1642688479000,
+      "startdate": 1642688211000,
+      "enddate": 32503680000000
+    },
+    {
+      "OBJECTID": 8835,
+      "lganame": "PENRITH",
+      "councilname": "PENRITH CITY COUNCIL",
+      "abscode": 6350,
+      "shapeuuid": "03c10f4a-618f-304b-aad4-7fdf5c40b480",
+      "modifieddate": 1750155441000,
+      "lastupdate": 1750155515000,
+      "startdate": 1750155486000,
+      "enddate": 32503680000000
+    },
+    {
+      "OBJECTID": 9550,
+      "lganame": "THE HILLS SHIRE",
+      "councilname": "THE HILLS SHIRE COUNCIL",
+      "abscode": 7420,
+      "shapeuuid": "96325a6c-07d5-35f9-b041-35c2f9e054f6",
+      "modifieddate": 1776437070000,
+      "lastupdate": 1776437117000,
+      "startdate": 1776437110000,
+      "enddate": 32503680000000
+    },
+    {
+      "OBJECTID": 9769,
+      "lganame": "CITY OF PARRAMATTA",
+      "councilname": "CITY OF PARRAMATTA COUNCIL",
+      "abscode": 6260,
+      "shapeuuid": "e76eb24a-b9d8-34b6-b6d0-8666b6ce5988",
+      "modifieddate": 1785854954000,
+      "lastupdate": 1785855047000,
+      "startdate": 1785855017000,
+      "enddate": 32503680000000
+    }
+  ],
+  "attribution": "© State of New South Wales (Spatial Services, a business unit of the Department of Customer Service NSW). For current information go to spatial.nsw.gov.au.",
+  "licence": "CC-BY-4.0",
+  "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+  "licenceEvidenceUrl": "https://www.spatial.nsw.gov.au/copyright",
+  "licenceEvidenceNote": "Exact layer portal item licenseInfo links Spatial Services copyright. Official indexed copyright text retrieved 28 November 2026 states all Spatial Services material on its owned sites is CC BY 4.0 unless otherwise stated. Layer item says Open/Creative Commons and contains no conflicting restriction. Direct copyright URL currently redirects and is inconsistently retrievable.",
+  "scope": "Polygons intersecting combined study-window envelope, not clipped or simplified; authoritative source boundaries transformed by source service to requested WGS84. For representative-point jurisdiction association only; not asset ownership or verified facility entrance/route.",
+  "sourceCountCheckUrl": "https://portal.spatial.nsw.gov.au/server/rest/services/NSW_Administrative_Boundaries_Theme_multiCRS/FeatureServer/8/query?where=1%3D1&geometry=150.675%2C-33.835%2C151.025%2C-33.735&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&f=json&returnCountOnly=true",
+  "sourceCountCheck": {
+    "count": 6
+  }
+}

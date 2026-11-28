@@ -96,3 +96,8 @@ Thumbs.db
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
+
+# Preserve third-party source bytes and their recorded provenance.
+data/community-infrastructure/nsw-lga-boundaries.geojson
+data/community-infrastructure/nsw-lga-boundaries-receipt.json
+public/map-symbols/nps/
