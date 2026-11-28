@@ -51,3 +51,7 @@ When `ACCESS_MAP_OVERLAY_ENABLED=true`, add a second GeoJSON source (`MAP_SOURCE
 ## Care + Transport map
 
 See `docs/modules/care-transport-map.md` for layers, Ask context `care_transport_map`, and privacy rules.
+
+## Community infrastructure
+
+The bounded OSM community layer adds parking, toilets and public-space source reports at `/accessibility-map/community`, with public GeoJSON at `GET /api/access/community-infrastructure`. It reuses GAIS contracts, preserves unknown access details and source dates, and provides an equivalent list alongside the optional Leaflet map. See [Community infrastructure layer](community-infrastructure.md) for study-window boundaries, implementation scope, refresh/verification commands and source limitations.

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { AccessibilityMapLanding } from "@/components/accessibility-map/AccessibilityMapLanding";
 import { MapAbleCareMarketingShell } from "@/components/marketing/MapAbleCareMarketingShell";
@@ -17,6 +18,20 @@ export default async function AccessibilityMapPage() {
 
   return (
     <MapAbleCareMarketingShell>
+      <div className="border-b border-slate-200 bg-white px-5 py-4">
+        <div className="mx-auto max-w-7xl text-sm">
+          <Link
+            href="/accessibility-map/community"
+            className="inline-flex min-h-11 items-center rounded-lg font-semibold text-[#005B7F] underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#005B7F]"
+          >
+            Explore community parking, toilets and public spaces
+          </Link>
+          <p className="text-slate-600">
+            Western Sydney source reports with access details and explicit
+            unknowns.
+          </p>
+        </div>
+      </div>
       <AccessibilityMapLanding
         initialPlaces={places}
         dataSourceNote={

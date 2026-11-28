@@ -1,0 +1,23 @@
+NPMap Symbol Library category symbols
+
+Source: https://github.com/nationalparkservice/symbol-library
+Upstream commit: 27e97208c860366ab9d78dfe594a778c411661fb
+Original directory: src/standalone/
+Files: parking-black-30.svg, restrooms-black-30.svg,
+       point-of-interest-black-30.svg
+
+These three files are unmodified copies. The repository's complete BSD
+licence, including Copyright© 2013, Mapbox, LLC., is retained in LICENSE.txt.
+
+The National Park Service also describes its cartographic symbols as public
+domain at:
+https://www.nps.gov/subjects/gisandmapping/map-symbols-patterns-for-nps-maps.htm
+The upstream repository licence is retained rather than substituting a
+different notice for these downloaded files.
+
+MapAble uses these symbols as decorative category cues beside visible text.
+They do not establish accessibility, gender-specific facilities, present
+availability, accreditation, or endorsement by NPS or Mapbox. No NPS logo,
+arrowhead, seal, or wheelchair-accessibility badge is included.
+
+Source details and safety inspection: docs/map/community-infrastructure-symbols.md
