@@ -8,6 +8,11 @@ import {
   OSM_ATTRIBUTION,
   OSM_LICENCE_URL,
 } from "@/lib/access/community-infrastructure/config";
+import {
+  COUNCIL_BOUNDARY_SOURCE,
+  COUNCIL_REFERENCES,
+  getCouncilLinkage,
+} from "@/lib/access/community-infrastructure/council-references";
 import { normaliseOverpassResponse } from "@/lib/access/community-infrastructure/normalise";
 import {
   getCommunityInfrastructure,
@@ -117,6 +122,9 @@ describe("community infrastructure public query", () => {
     "area=world",
     "category=verified",
     "wheelchair=true",
+    "council=parramatta",
+    "council=",
+    "council=city_of_parramatta&council=cumberland_city",
     "limit=501",
     "limit=0",
     "offset=-1",
@@ -159,6 +167,7 @@ describe("community infrastructure public query", () => {
       snapshot,
     );
     expect(result.meta.sources[0].licence).toBe("ODbL-1.0");
+    expect(result.meta.sources[1].licence).toBe("CC-BY-4.0");
     expect(result.meta.liveNationalRouting).toBe(false);
     expect(
       result.features.every(
@@ -185,6 +194,10 @@ describe("community infrastructure public query", () => {
     );
     expect(response.headers.get("cache-control")).toContain("public");
     expect(response.headers.get("link")).toContain('rel="license"');
+    expect(response.headers.get("link")).toContain(OSM_LICENCE_URL);
+    expect(response.headers.get("link")).toContain(
+      COUNCIL_BOUNDARY_SOURCE.licenceUrl,
+    );
     expect(response.headers.get("set-cookie")).toBeNull();
     expect(response.headers.get("access-control-allow-origin")).toBe("*");
     expect(response.headers.get("access-control-allow-credentials")).toBeNull();
@@ -222,6 +235,115 @@ describe("community infrastructure public query", () => {
     expect(response.headers.get("access-control-allow-origin")).toBe("*");
     expect(response.headers.get("access-control-allow-credentials")).toBeNull();
     expect((await response.json()).code).toBe("INVALID_QUERY");
+  });
+});
+
+describe("council linkages over the selected study window", () => {
+  it("defaults to all and returns actual boundary councils rather than the study-area label", () => {
+    const query = parseCommunityQuery(new URLSearchParams());
+    expect(query.council).toBe("all");
+    const result = getCommunityInfrastructure(query);
+    expect(
+      result.meta.councilLinkage?.councils.map((council) => [
+        council.id,
+        council.featureCount,
+      ]),
+    ).toEqual([
+      ["city_of_parramatta", 157],
+      ["cumberland_city", 8],
+    ]);
+    expect(result.meta.councilLinkage).toMatchObject({
+      ambiguousFeatureCount: 0,
+      unmatchedFeatureCount: 0,
+      notJoinedFeatureCount: 0,
+    });
+  });
+
+  it("filters Cumberland records inside the Parramatta study window without changing evidence", () => {
+    const result = getCommunityInfrastructure(
+      parseCommunityQuery(
+        new URLSearchParams("area=parramatta&council=cumberland_city"),
+      ),
+    );
+    expect(result.meta.totalMatched).toBe(8);
+    expect(result.features).toHaveLength(8);
+    for (const feature of result.features) {
+      expect(feature.properties.area).toBe("parramatta");
+      expect(feature.properties.councilJurisdiction).toMatchObject({
+        status: "matched",
+        matches: [{ councilId: "cumberland_city" }],
+        assetOwnership: "not_established",
+      });
+      expect(feature.properties.gaisEvidenceState).toBe("COMMUNITY_REPORTED");
+      expect(feature.properties.routeEndpoint).toBe(false);
+    }
+  });
+
+  it("keeps council counts for the whole window when results are filtered or paged", () => {
+    const full = getCommunityInfrastructure(
+      parseCommunityQuery(new URLSearchParams()),
+    );
+    const filtered = getCommunityInfrastructure(
+      parseCommunityQuery(
+        new URLSearchParams(
+          "category=parking&wheelchair=unknown&limit=1&council=city_of_parramatta",
+        ),
+      ),
+    );
+    expect(filtered.features).toHaveLength(1);
+    expect(filtered.meta.councilLinkage).toEqual(full.meta.councilLinkage);
+    expect(filtered.meta.attribution).toContain(
+      COUNCIL_BOUNDARY_SOURCE.attribution,
+    );
+  });
+
+  it("does not turn ambiguous, unmatched or missing joins into definite council results", () => {
+    const fixture = structuredClone(snapshot);
+    const sample = getCommunityInfrastructure(
+      parseCommunityQuery(
+        new URLSearchParams("council=city_of_parramatta&limit=1"),
+      ),
+    ).features[0].properties.councilJurisdiction!;
+    const features = fixture.areas.parramatta!.features;
+    features[0].properties.councilJurisdiction = {
+      ...sample,
+      status: "ambiguous",
+      coordinate: features[0].geometry.coordinates,
+    };
+    features[1].properties.councilJurisdiction = {
+      ...sample,
+      status: "unmatched",
+      matches: [],
+      coordinate: features[1].geometry.coordinates,
+    };
+    const result = getCommunityInfrastructure(
+      parseCommunityQuery(new URLSearchParams("council=city_of_parramatta")),
+      fixture,
+    );
+    expect(result.features).toHaveLength(0);
+    expect(getCouncilLinkage(features)).toMatchObject({
+      councils: [],
+      ambiguousFeatureCount: 1,
+      unmatchedFeatureCount: 1,
+      notJoinedFeatureCount: 1,
+    });
+  });
+
+  it("keeps official reference links distinct from licensed boundary data and facility imports", () => {
+    expect(new Set(COUNCIL_REFERENCES.map((council) => council.id)).size).toBe(
+      6,
+    );
+    const links = COUNCIL_REFERENCES.flatMap((council) => council.sourceLinks);
+    expect(links).toHaveLength(18);
+    expect(new Set(links.map((link) => link.id)).size).toBe(links.length);
+    for (const link of links) {
+      expect(new URL(link.url).protocol).toBe("https:");
+      expect(link.importEnabled).toBe(false);
+      expect(link.bulkReuseStatus).toBe("not_established");
+      expect(Number.isFinite(Date.parse(link.reviewedAt))).toBe(true);
+    }
+    expect(COUNCIL_BOUNDARY_SOURCE.licence).toBe("CC-BY-4.0");
+    expect(COUNCIL_BOUNDARY_SOURCE.outputSpatialReference).toBe(4326);
   });
 });
 
@@ -288,6 +410,9 @@ describe("checked-in community infrastructure snapshot", () => {
         expect(properties.id).toBe(feature.id);
         expect(properties.gaisFeatureId).toBe(feature.id);
         expect(properties.area).toBe(area.id);
+        expect(properties.councilJurisdiction?.boundaryRetrievedAt).toBe(
+          COUNCIL_BOUNDARY_SOURCE.retrievedAt,
+        );
         expect(["parking", "toilet", "public_space"]).toContain(
           properties.category,
         );

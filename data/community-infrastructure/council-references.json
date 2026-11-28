@@ -1,0 +1,299 @@
+{
+  "schemaVersion": "1.0.0",
+  "reviewedAt": "2026-11-28",
+  "boundarySource": {
+    "id": "nsw-spatial-services-lga",
+    "name": "NSW Spatial Services Local Government Areas",
+    "url": "https://portal.spatial.nsw.gov.au/server/rest/services/NSW_Administrative_Boundaries_Theme_multiCRS/FeatureServer/8",
+    "publisher": "NSW Spatial Services",
+    "retrievedAt": "2026-11-28T10:34:26.484467+00:00",
+    "licence": "CC-BY-4.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "attribution": "© State of New South Wales (Spatial Services, a business unit of the Department of Customer Service NSW). For current information go to spatial.nsw.gov.au.",
+    "sourceSpatialReference": 7844,
+    "outputSpatialReference": 4326
+  },
+  "councils": [
+    {
+      "id": "city_of_parramatta",
+      "name": "City of Parramatta Council",
+      "website": "https://www.cityofparramatta.nsw.gov.au/",
+      "sourceLinks": [
+        {
+          "id": "parramatta-accessible-parking",
+          "title": "Accessible Parking",
+          "url": "https://www.cityofparramatta.nsw.gov.au/community/getting-around/parking/car-parks/accessible-parking",
+          "categories": ["parking"],
+          "sourceKind": "council_guidance",
+          "reviewedAt": "2026-11-28",
+          "sourceUpdatedAt": null,
+          "retrievalStatus": "public_page",
+          "bulkReuseStatus": "not_established",
+          "importEnabled": false,
+          "note": "Official page links Council Parking Finder and instructs users to select accessible parking. No underlying reusable API or accessible-bay vacancy feed verified."
+        },
+        {
+          "id": "parramatta-parks-directory",
+          "title": "Find a Park or Reserve",
+          "url": "https://www.cityofparramatta.nsw.gov.au/community/parks-and-public-spaces/find-a-park-or-reserve",
+          "categories": ["public_space"],
+          "sourceKind": "council_directory",
+          "reviewedAt": "2026-11-28",
+          "sourceUpdatedAt": null,
+          "retrievalStatus": "indexed_page_direct_403",
+          "bulkReuseStatus": "not_established",
+          "importEnabled": false,
+          "note": "Official indexed directory has suburb/category/feature filters, including Accessible. Direct canonical fetch returned HTTP 403; search-index content was available. No bulk dataset established."
+        },
+        {
+          "id": "parramatta-ollie-webb-reserve",
+          "title": "Ollie Webb Reserve",
+          "url": "https://www.cityofparramatta.nsw.gov.au/community/parks-and-public-spaces/find-a-park-or-reserve/ollie-webb-reserve",
+          "categories": ["parking", "toilet", "adult_change", "public_space"],
+          "sourceKind": "council_facility_page",
+          "reviewedAt": "2026-11-28",
+          "sourceUpdatedAt": null,
+          "retrievalStatus": "public_page",
+          "bulkReuseStatus": "not_established",
+          "importEnabled": false,
+          "note": "Council reports accessible toilets, adult change with hoist/table, parking and drop-off. A temporary works notice is also present. Treat as dated operator claims and check actual conditions; no compliance or live availability assertion."
+        },
+        {
+          "id": "parramatta-toilet-map-referral",
+          "title": "National Public Toilet Map",
+          "url": "https://www.cityofparramatta.nsw.gov.au/community/ageing-and-disability/people-with-disability/national-public-toilet-map",
+          "categories": ["toilet"],
+          "sourceKind": "council_referral",
+          "reviewedAt": "2026-11-28",
+          "sourceUpdatedAt": null,
+          "retrievalStatus": "indexed_public_page",
+          "bulkReuseStatus": "not_established",
+          "importEnabled": false,
+          "note": "Council refers users to the national lookup. This is not a separate council toilet dataset or evidence of a MapAble import."
+        },
+        {
+          "id": "parramatta-data-hub-guidance",
+          "title": "Data Visualisation Hub",
+          "url": "https://www.cityofparramatta.nsw.gov.au/council/projects/smart-city/data-visualisation-hub",
+          "categories": ["open_data"],
+          "sourceKind": "council_portal_description",
+          "reviewedAt": "2026-11-28",
+          "sourceUpdatedAt": null,
+          "retrievalStatus": "indexed_page_direct_403",
+          "bulkReuseStatus": "not_established",
+          "importEnabled": false,
+          "note": "Official indexed page describes Parks near Me, aerial views and capital works applications. Direct page retrieval returned HTTP 403. App availability does not establish a licensed asset feed."
+        },
+        {
+          "id": "parramatta-arcgis-hub",
+          "title": "City of Parramatta Data Visualisation",
+          "url": "https://open-data-parracity.hub.arcgis.com/",
+          "categories": ["open_data"],
+          "sourceKind": "council_linked_data_portal",
+          "reviewedAt": "2026-11-28",
+          "sourceUpdatedAt": null,
+          "retrievalStatus": "page_shell_no_dataset_verified",
+          "bulkReuseStatus": "not_established",
+          "importEnabled": false,
+          "note": "Council-linked ArcGIS Hub resolved as a page with no readable lines. No particular downloadable parking/toilet/park service or release licence was verified."
+        }
+      ]
+    },
+    {
+      "id": "cumberland_city",
+      "name": "Cumberland Council",
+      "website": "https://www.cumberland.nsw.gov.au/",
+      "sourceLinks": [
+        {
+          "id": "cumberland-public-toilet-map-report",
+          "title": "Annual Report 2024-2025: Public Toilet Map",
+          "url": "https://www.cumberland.nsw.gov.au/sites/default/files/inline-files/annual-report-2024-2025.pdf",
+          "categories": ["toilet"],
+          "sourceKind": "council_report",
+          "reviewedAt": "2026-11-28",
+          "sourceUpdatedAt": null,
+          "retrievalStatus": "indexed_official_pdf",
+          "bulkReuseStatus": "not_established",
+          "importEnabled": false,
+          "note": "Official report states Council has a Public Toilet Map with access, adult-change, baby-care and hours information. Exact live map endpoint and data licence were not resolved in this bounded review."
+        },
+        {
+          "id": "cumberland-public-amenities-plan",
+          "title": "Cumberland Public Amenities",
+          "url": "https://haveyoursay.cumberland.nsw.gov.au/public-amenities",
+          "categories": ["toilet", "adult_change", "public_space"],
+          "sourceKind": "council_consultation",
+          "reviewedAt": "2026-11-28",
+          "sourceUpdatedAt": null,
+          "retrievalStatus": "indexed_public_page",
+          "bulkReuseStatus": "not_established",
+          "importEnabled": false,
+          "note": "Official consultation describes a public amenities review covering toilets, change rooms, showers and parent/baby-change facilities. It is planning evidence, not a current operating-facility inventory."
+        }
+      ]
+    },
+    {
+      "id": "penrith_city",
+      "name": "Penrith City Council",
+      "website": "https://www.penrithcity.nsw.gov.au/",
+      "sourceLinks": [
+        {
+          "id": "penrith-accessible-services-map",
+          "title": "Accessible Services Map",
+          "url": "https://www.penrithcity.nsw.gov.au/news/213-penrith-accessible-services-map",
+          "categories": [
+            "parking",
+            "toilet",
+            "adult_change",
+            "public_space",
+            "lifts",
+            "wayfinding"
+          ],
+          "sourceKind": "council_interactive_map",
+          "reviewedAt": "2026-11-28",
+          "sourceUpdatedAt": "2024-07-02",
+          "retrievalStatus": "public_page",
+          "bulkReuseStatus": "not_established",
+          "importEnabled": false,
+          "note": "Public map also exposes a text list of parking, toilets, lifts, adult change/Changing Places, MLAK, hours and wayfinding. Page displays last updated 2 July 2024; entries are operator information, not a live condition feed."
+        },
+        {
+          "id": "penrith-city-centre-parking",
+          "title": "Penrith City Centre Parking Map",
+          "url": "https://penrithcity.nsw.gov.au/services/other-services/parking/penrith-city-centre-parking-map",
+          "categories": ["parking"],
+          "sourceKind": "council_interactive_map",
+          "reviewedAt": "2026-11-28",
+          "sourceUpdatedAt": "2024-08-27",
+          "retrievalStatus": "public_page",
+          "bulkReuseStatus": "not_established",
+          "importEnabled": false,
+          "note": "Official list/map gives locations, restrictions and accessible-space counts. Page warns conditions can change and displays last updated 27 August 2024. Counts are capacity claims, not vacancy."
+        },
+        {
+          "id": "penrith-playspaces",
+          "title": "Playspaces",
+          "url": "https://penrithcity.nsw.gov.au/facilities-recreation/outdoor-recreation/playspaces",
+          "categories": ["public_space", "toilet", "parking", "paths"],
+          "sourceKind": "council_directory",
+          "reviewedAt": "2026-11-28",
+          "sourceUpdatedAt": "2026-10-29",
+          "retrievalStatus": "public_page",
+          "bulkReuseStatus": "not_established",
+          "importEnabled": false,
+          "note": "Searchable map and text directory include accessible/inclusive features, toilets and pathways. Page updated 29 October 2026. Descriptions are not path measurements or guaranteed current facility condition."
+        },
+        {
+          "id": "penrith-nepean-river-map",
+          "title": "Nepean River Interactive Map",
+          "url": "https://penrithcity.nsw.gov.au/facilities-recreation/nepean-river/nepean-river-interactive-map",
+          "categories": ["parking", "toilet", "adult_change", "public_space"],
+          "sourceKind": "council_interactive_map",
+          "reviewedAt": "2026-11-28",
+          "sourceUpdatedAt": null,
+          "retrievalStatus": "indexed_public_page",
+          "bulkReuseStatus": "not_established",
+          "importEnabled": false,
+          "note": "Council map describes parking and toilet facilities, access conditions and some adult-change information. Some narrative still refers to planned completion in 2022; individual entries need currency review. Covers a river precinct and must not be assumed inside the Penrith study rectangle."
+        },
+        {
+          "id": "penrith-data-portal",
+          "title": "Data.Penrith.City",
+          "url": "https://data.penrith.city/",
+          "categories": ["open_data"],
+          "sourceKind": "council_linked_data_portal",
+          "reviewedAt": "2026-11-28",
+          "sourceUpdatedAt": null,
+          "retrievalStatus": "login_redirect",
+          "bulkReuseStatus": "not_established",
+          "importEnabled": false,
+          "note": "Official council pages link this portal. Direct opening redirected to /login/. No public dataset or licence was inspected; this is observed access behaviour, not proof that no public exports exist elsewhere."
+        }
+      ]
+    },
+    {
+      "id": "blacktown_city",
+      "name": "Blacktown City Council",
+      "website": "https://www.blacktown.nsw.gov.au/",
+      "sourceLinks": [
+        {
+          "id": "blacktown-parks-directory",
+          "title": "Parks and recreation directory",
+          "url": "https://www.blacktown.nsw.gov.au/Sport-recreation/Parks-and-recreation-directory",
+          "categories": ["public_space"],
+          "sourceKind": "council_directory",
+          "reviewedAt": "2026-11-28",
+          "sourceUpdatedAt": null,
+          "retrievalStatus": "public_page",
+          "bulkReuseStatus": "not_established",
+          "importEnabled": false,
+          "note": "Public searchable directory has suburb/category/feature controls and links to facility pages. A separate dated sporting-field closure notice is displayed; do not treat it as all-facility operating status."
+        },
+        {
+          "id": "blacktown-warrick-lane-carpark",
+          "title": "Warrick Lane precinct car park",
+          "url": "https://www.blacktown.nsw.gov.au/Services/Roads-construction-and-parking/Look-up-city-parking/Warrick-Lane-precinct-car-park",
+          "categories": ["parking"],
+          "sourceKind": "council_facility_page",
+          "reviewedAt": "2026-11-28",
+          "sourceUpdatedAt": null,
+          "retrievalStatus": "indexed_page_direct_403",
+          "bulkReuseStatus": "not_established",
+          "importEnabled": false,
+          "note": "Indexed official page describes disability parking, lifts, opening hours and height restriction. Text retains the 2021 opening announcement. Canonical direct fetch returned 403. No live occupancy or bulk data service verified."
+        },
+        {
+          "id": "blacktown-disability-and-mlak",
+          "title": "People with disability",
+          "url": "https://www.blacktown.nsw.gov.au/Community/Our-people/People-with-disability",
+          "categories": ["toilet", "accessibility"],
+          "sourceKind": "council_guidance",
+          "reviewedAt": "2026-11-28",
+          "sourceUpdatedAt": null,
+          "retrievalStatus": "indexed_public_page",
+          "bulkReuseStatus": "not_established",
+          "importEnabled": false,
+          "note": "Official indexed page covers inclusion and MLAK access information and refers to the National Public Toilet Map. Guidance and referral only; not a geocoded toilet feed."
+        },
+        {
+          "id": "blacktown-wawai-ngurra",
+          "title": "Wawai Ngurra, inclusive adventure playspace",
+          "url": "https://www.blacktown.nsw.gov.au/Sport-recreation/Parks-and-recreation-directory/Wawai-Ngurra-inclusive-adventure-playspace",
+          "categories": ["public_space", "parking", "toilet", "adult_change"],
+          "sourceKind": "council_facility_page",
+          "reviewedAt": "2026-11-28",
+          "sourceUpdatedAt": null,
+          "retrievalStatus": "indexed_public_page",
+          "bulkReuseStatus": "not_established",
+          "importEnabled": false,
+          "note": "Council reports Changing Places, disability parking, accessible furniture and paths. This is a council-wide expansion example, not evidence of inclusion in the Blacktown-centre rectangle. No entrance/bay geometry or inspected measurements established."
+        },
+        {
+          "id": "blacktown-webspatial",
+          "title": "WebSpatial",
+          "url": "https://maps.blacktown.nsw.gov.au/",
+          "categories": ["open_data"],
+          "sourceKind": "council_map_portal",
+          "reviewedAt": "2026-11-28",
+          "sourceUpdatedAt": null,
+          "retrievalStatus": "indexed_public_page",
+          "bulkReuseStatus": "not_established",
+          "importEnabled": false,
+          "note": "Official map portal indexed disclaimer identifies licensed third-party street-directory material. No accessibility dataset endpoint or bulk export was verified; do not reuse its cartographic imagery as council open data."
+        }
+      ]
+    },
+    {
+      "id": "fairfield_city",
+      "name": "Fairfield City Council",
+      "website": null,
+      "sourceLinks": []
+    },
+    {
+      "id": "the_hills_shire",
+      "name": "The Hills Shire Council",
+      "website": null,
+      "sourceLinks": []
+    }
+  ]
+}

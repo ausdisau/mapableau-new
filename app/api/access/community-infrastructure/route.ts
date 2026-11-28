@@ -49,7 +49,7 @@ export function GET(request: Request) {
       ...PUBLIC_LAYER_HEADERS,
       "Content-Type": "application/geo+json; charset=utf-8",
       "Cache-Control": "public, max-age=300, s-maxage=3600",
-      Link: '<https://opendatacommons.org/licenses/odbl/1-0/>; rel="license"',
+      Link: '<https://opendatacommons.org/licenses/odbl/1-0/>; rel="license", <https://creativecommons.org/licenses/by/4.0/>; rel="license"',
     },
   });
 }

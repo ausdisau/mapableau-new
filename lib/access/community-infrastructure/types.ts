@@ -1,6 +1,8 @@
 import type { GaisPoint } from "@/lib/gais/contracts/geometry";
 import type { GaisGeoJsonFeatureProperties } from "@/lib/gais/geojson/converters";
 
+import type { CouncilJurisdiction, CouncilLinkage } from "./council-types";
+
 export type CommunityAreaId = "parramatta" | "penrith" | "blacktown";
 export type CommunityCategory = "parking" | "toilet" | "public_space";
 export type WheelchairStatus =
@@ -46,6 +48,8 @@ export type CommunityInfrastructureFeature = {
     accessFacts: Array<{ key: string; label: string; value: string }>;
     source: CommunitySource;
     sourceTags: Record<string, string>;
+    /** Boundary association for the display point; separate from OSM access evidence. */
+    councilJurisdiction?: CouncilJurisdiction;
   };
 };
 
@@ -66,6 +70,7 @@ export type CommunityInfrastructureCollection = {
     liveNationalRouting: false;
     notice: string;
     attribution: string;
+    councilLinkage?: CouncilLinkage;
     sources: Array<{
       id: string;
       url: string;

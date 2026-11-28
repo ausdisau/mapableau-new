@@ -15,6 +15,10 @@ import {
   communityTileAttribution,
 } from "@/components/accessibility-map/community/presentation";
 import type {
+  CouncilJurisdiction,
+  CouncilLinkage,
+} from "@/lib/access/community-infrastructure/council-types";
+import type {
   CommunityInfrastructureCollection,
   CommunityInfrastructureFeature,
 } from "@/lib/access/community-infrastructure/types";
@@ -120,6 +124,100 @@ function response(value: unknown) {
   return { ok: true, json: async () => value };
 }
 
+const councilLinkage: CouncilLinkage = {
+  mode: "display_point_boundary_match",
+  boundarySource: {
+    id: "nsw-spatial-services-lga",
+    name: "NSW council boundaries",
+    url: "https://example.test/boundaries",
+    publisher: "Synthetic boundary publisher",
+    retrievedAt: "2026-11-28T20:00:00Z",
+    licence: "CC-BY-4.0",
+    licenceUrl: "https://creativecommons.org/licenses/by/4.0/",
+    attribution: "Synthetic boundary attribution",
+    sourceSpatialReference: 7844,
+    outputSpatialReference: 4326,
+  },
+  councils: [
+    {
+      id: "city_of_parramatta",
+      name: "City of Parramatta",
+      website: "https://example.test/parramatta",
+      featureCount: 157,
+      sourceLinks: [
+        {
+          id: "toilets",
+          title: "Council toilet information",
+          url: "https://example.test/parramatta/toilets",
+          categories: ["toilet"],
+          sourceKind: "council_page",
+          reviewedAt: "2026-11-28",
+          sourceUpdatedAt: null,
+          retrievalStatus: "retrieved",
+          bulkReuseStatus: "not_established",
+          importEnabled: false,
+          note: "Synthetic reference page; not a facility inspection.",
+        },
+        {
+          id: "parks",
+          title: "Council parks information",
+          url: "https://example.test/parramatta/parks",
+          categories: ["public_space"],
+          sourceKind: "council_page",
+          reviewedAt: "2026-11-28",
+          sourceUpdatedAt: null,
+          retrievalStatus: "retrieved",
+          bulkReuseStatus: "not_established",
+          importEnabled: false,
+          note: "Synthetic reference page.",
+        },
+        {
+          id: "parking",
+          title: "Council parking information",
+          url: "https://example.test/parramatta/parking",
+          categories: ["parking"],
+          sourceKind: "council_page",
+          reviewedAt: "2026-11-28",
+          sourceUpdatedAt: null,
+          retrievalStatus: "retrieved",
+          bulkReuseStatus: "not_established",
+          importEnabled: false,
+          note: "Synthetic reference page.",
+        },
+      ],
+    },
+    {
+      id: "cumberland",
+      name: "Cumberland Council",
+      website: "https://example.test/cumberland",
+      featureCount: 8,
+      sourceLinks: [],
+    },
+  ],
+  ambiguousFeatureCount: 0,
+  unmatchedFeatureCount: 0,
+  notJoinedFeatureCount: 0,
+  notice: "Synthetic boundary matches are not evidence of asset ownership.",
+};
+
+const cumberlandJurisdiction: CouncilJurisdiction = {
+  status: "matched",
+  method: "display_point_in_polygon",
+  coordinate: [151.001, -33.814],
+  matches: [
+    {
+      councilId: "cumberland",
+      councilName: "Cumberland Council",
+      sourceFeatureId: "synthetic-cumberland",
+      sourceObjectId: 2,
+      sourceCode: 999,
+    },
+  ],
+  boundarySourceId: "nsw-spatial-services-lga",
+  boundaryRetrievedAt: "2026-11-28T20:00:00Z",
+  assetOwnership: "not_established",
+};
+
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
@@ -141,6 +239,7 @@ describe("community infrastructure participant interface", () => {
     expect(within(card).getByText("Unknown — not recorded")).toBeTruthy();
     expect(within(card).getByText("customers")).toBeTruthy();
     expect(within(card).getByText(/Approximate area marker/)).toBeTruthy();
+    expect(within(card).getByText("Not joined")).toBeTruthy();
     expect(within(card).getByText("Data retrieved 28 Nov 2026")).toBeTruthy();
     fireEvent.click(within(card).getByText("Missing access details (1)"));
     expect(within(card).getByText("Wheelchair access")).toBeTruthy();
@@ -289,6 +388,174 @@ describe("community infrastructure participant interface", () => {
       "/map-symbols/nps/restrooms-black-30.svg",
     );
     expect(card.textContent).toContain(malicious.properties.name);
+  });
+
+  it("keeps whole-window council counts separate from filters and facility reuse rights", async () => {
+    const linked = collection();
+    linked.meta.councilLinkage = councilLinkage;
+    const fetchMock = vi.fn().mockResolvedValue(response(linked));
+    vi.stubGlobal("fetch", fetchMock);
+    render(<CommunityInfrastructureExplorer />);
+    const panel = await screen.findByRole("region", {
+      name: "Council information",
+    });
+    await within(panel).findByRole("heading", {
+      name: "City of Parramatta",
+      level: 3,
+    });
+    expect(
+      within(panel).getByText(/Counts cover the whole Parramatta study window/),
+    ).toBeTruthy();
+    expect(
+      within(panel).getByText("157 mapped records matched by marker location"),
+    ).toBeTruthy();
+    expect(
+      within(panel).getByText("8 mapped records matched by marker location"),
+    ).toBeTruthy();
+    expect(
+      screen.getByText("1 mapped record match your filters."),
+    ).toBeTruthy();
+
+    fireEvent.change(screen.getByLabelText("Type of place"), {
+      target: { value: "parking" },
+    });
+    await within(panel).findByText(
+      "157 mapped records matched by marker location",
+    );
+    const councilLinks = Array.from(panel.querySelectorAll("a:not(details a)"));
+    expect(councilLinks[0].textContent).toBe("Council parking information");
+    expect(councilLinks[0].getAttribute("href")).toBe(
+      "https://example.test/parramatta/parking",
+    );
+    fireEvent.click(within(panel).getByText("Source and reuse details"));
+    expect(
+      within(panel).getByRole("link", {
+        name: "Boundary data licence: CC-BY-4.0",
+      }),
+    ).toBeTruthy();
+    expect(
+      within(panel).getByText(/Bulk reuse rights for council facility/),
+    ).toBeTruthy();
+    expect(
+      within(panel).getByText(/has not been imported into this layer/),
+    ).toBeTruthy();
+    expect(within(panel).getByText(/Retrieved 29 Nov 2026/)).toBeTruthy();
+    expect(
+      fetchMock.mock.calls.every(([url]) =>
+        String(url).startsWith("/api/access/community-infrastructure?"),
+      ),
+    ).toBe(true);
+  });
+
+  it("uses the feature boundary match rather than the study-area name or ownership", async () => {
+    const linked = collection([
+      {
+        ...feature,
+        properties: {
+          ...feature.properties,
+          councilJurisdiction: cumberlandJurisdiction,
+        },
+      },
+    ]);
+    linked.meta.councilLinkage = councilLinkage;
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(response(linked)));
+    render(<CommunityInfrastructureExplorer />);
+    const card = await screen.findByRole("article", {
+      name: "Synthetic public toilet",
+    });
+    expect(
+      within(card).getByText("Council area at approximate marker:"),
+    ).toBeTruthy();
+    expect(within(card).getByText("Cumberland Council")).toBeTruthy();
+    expect(within(card).queryByText("City of Parramatta")).toBeNull();
+    expect(
+      within(card).getByText(/The feature may extend beyond this council area/),
+    ).toBeTruthy();
+    fireEvent.click(within(card).getByText("Source and evidence dates"));
+    expect(
+      within(card).getByText("Not established by council boundary matching"),
+    ).toBeTruthy();
+    expect(within(card).getByText("29 Nov 2026")).toBeTruthy();
+    expect(
+      within(card)
+        .getByRole("link", { name: "NSW council boundaries" })
+        .getAttribute("href"),
+    ).toBe("https://example.test/boundaries");
+  });
+
+  it("distinguishes ambiguous, unmatched and missing jurisdiction without assigning a council", async () => {
+    const uncertain = [
+      {
+        ...feature,
+        properties: {
+          ...feature.properties,
+          councilJurisdiction: {
+            ...cumberlandJurisdiction,
+            status: "ambiguous" as const,
+            matches: [
+              ...cumberlandJurisdiction.matches,
+              {
+                ...cumberlandJurisdiction.matches[0],
+                councilId: "city_of_parramatta",
+                councilName: "City of Parramatta",
+              },
+            ],
+          },
+        },
+      },
+      {
+        ...feature,
+        id: "osm:way:43",
+        properties: {
+          ...feature.properties,
+          id: "osm:way:43",
+          name: "Unmatched synthetic feature",
+          councilJurisdiction: {
+            ...cumberlandJurisdiction,
+            status: "unmatched" as const,
+            matches: [],
+          },
+        },
+      },
+      {
+        ...feature,
+        id: "osm:way:44",
+        properties: {
+          ...feature.properties,
+          id: "osm:way:44",
+          name: "Unjoined synthetic feature",
+        },
+      },
+    ];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(response(collection(uncertain))),
+    );
+    render(<CommunityInfrastructureExplorer />);
+    const ambiguous = await screen.findByRole("article", {
+      name: "Synthetic public toilet",
+    });
+    expect(
+      within(ambiguous).getByText("Ambiguous boundary match"),
+    ).toBeTruthy();
+    expect(
+      within(ambiguous).getByText(
+        /More than one council area matches this marker/,
+      ),
+    ).toBeTruthy();
+    expect(
+      within(
+        screen.getByRole("article", { name: "Unmatched synthetic feature" }),
+      ).getByText("No boundary match"),
+    ).toBeTruthy();
+    const unjoined = screen.getByRole("article", {
+      name: "Unjoined synthetic feature",
+    });
+    expect(within(unjoined).getByText("Not joined")).toBeTruthy();
+    expect(within(unjoined).queryByText("City of Parramatta")).toBeNull();
+    expect(
+      screen.getByText(/A council is not inferred from the study-area name/),
+    ).toBeTruthy();
   });
 });
 

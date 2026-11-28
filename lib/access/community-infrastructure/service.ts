@@ -8,6 +8,11 @@ import {
   OSM_ATTRIBUTION,
   OSM_LICENCE_URL,
 } from "./config";
+import {
+  COUNCIL_BOUNDARY_SOURCE,
+  getCouncilLinkage,
+  getCouncilReference,
+} from "./council-references";
 import type {
   CommunityAreaId,
   CommunityCategory,
@@ -26,6 +31,7 @@ export type CommunityQuery = {
   area: CommunityAreaId;
   category: CommunityCategory | "all";
   wheelchair: WheelchairStatus | "all";
+  council: string;
   limit: number;
   offset: number;
   bbox?: [number, number, number, number];
@@ -36,6 +42,7 @@ export function parseCommunityQuery(params: URLSearchParams): CommunityQuery {
     "area",
     "category",
     "wheelchair",
+    "council",
     "limit",
     "offset",
     "bbox",
@@ -48,6 +55,7 @@ export function parseCommunityQuery(params: URLSearchParams): CommunityQuery {
   const area = getCommunityArea(params.get("area") ?? "parramatta");
   const category = params.get("category") ?? "all";
   const wheelchair = params.get("wheelchair") ?? "all";
+  const council = params.get("council") ?? "all";
   if (
     !area ||
     !["parking", "toilet", "public_space", "all"].includes(category) ||
@@ -56,6 +64,8 @@ export function parseCommunityQuery(params: URLSearchParams): CommunityQuery {
     )
   )
     throw new Error("Invalid area or filter");
+  if (council !== "all" && !getCouncilReference(council))
+    throw new Error("Unknown council reference");
   const format = params.get("format");
   if (format !== null && format !== "geojson")
     throw new Error("Only GeoJSON is supported");
@@ -94,6 +104,7 @@ export function parseCommunityQuery(params: URLSearchParams): CommunityQuery {
     area: area.id,
     category: category as CommunityQuery["category"],
     wheelchair: wheelchair as CommunityQuery["wheelchair"],
+    council,
     limit,
     offset,
     bbox,
@@ -117,6 +128,14 @@ export function getCommunityInfrastructure(
       feature.properties.wheelchair !== query.wheelchair
     )
       return false;
+    if (query.council !== "all") {
+      const jurisdiction = feature.properties.councilJurisdiction;
+      if (
+        jurisdiction?.status !== "matched" ||
+        !jurisdiction.matches.some((match) => match.councilId === query.council)
+      )
+        return false;
+    }
     if (query.bbox) {
       const [lon, lat] = feature.geometry.coordinates;
       const [west, south, east, north] = query.bbox;
@@ -142,13 +161,20 @@ export function getCommunityInfrastructure(
         "Bounded OpenStreetMap facility display points; no independently assessed access or routing",
       liveNationalRouting: false,
       notice: COMMUNITY_NOTICE,
-      attribution: OSM_ATTRIBUTION,
+      attribution: `${OSM_ATTRIBUTION}; ${COUNCIL_BOUNDARY_SOURCE.attribution}`,
+      councilLinkage: getCouncilLinkage(region?.features ?? []),
       sources: [
         {
           id: "openstreetmap",
           url: "https://www.openstreetmap.org/copyright",
           licence: "ODbL-1.0",
           licenceUrl: OSM_LICENCE_URL,
+        },
+        {
+          id: COUNCIL_BOUNDARY_SOURCE.id,
+          url: COUNCIL_BOUNDARY_SOURCE.url,
+          licence: COUNCIL_BOUNDARY_SOURCE.licence,
+          licenceUrl: COUNCIL_BOUNDARY_SOURCE.licenceUrl,
         },
       ],
     },

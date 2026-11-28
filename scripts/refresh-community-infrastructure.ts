@@ -1,4 +1,5 @@
 /** Manual snapshot refresh. No credentials, upstream edits, database writes or scheduled jobs. */
+import { createHash } from "node:crypto";
 import { open, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -7,6 +8,10 @@ import {
   COMMUNITY_AREAS,
   getCommunityArea,
 } from "../lib/access/community-infrastructure/config";
+import {
+  councilJurisdictionForPoint,
+  parseCouncilBoundarySnapshot,
+} from "../lib/access/community-infrastructure/council-geometry";
 import { normaliseOverpassResponse } from "../lib/access/community-infrastructure/normalise";
 import type { CommunitySnapshot } from "../lib/access/community-infrastructure/types";
 
@@ -15,7 +20,7 @@ const MAX_BYTES = 4_000_000;
 const USAGE =
   "Usage: node --import tsx scripts/refresh-community-infrastructure.ts [all|parramatta|penrith|blacktown] OR --from-file AREA FILE --retrieved-at ISO_TIMESTAMP";
 
-async function readBoundedFile(filename: string): Promise<unknown> {
+async function readBoundedFileBytes(filename: string): Promise<Buffer> {
   const file = await open(path.resolve(filename), "r");
   try {
     const buffer = Buffer.alloc(MAX_BYTES + 1);
@@ -31,10 +36,14 @@ async function readBoundedFile(filename: string): Promise<unknown> {
       if (size > MAX_BYTES) throw new Error("Source file exceeds limit");
       if (bytesRead === 0) break;
     }
-    return JSON.parse(buffer.subarray(0, size).toString("utf8"));
+    return buffer.subarray(0, size);
   } finally {
     await file.close();
   }
+}
+
+async function readBoundedFile(filename: string): Promise<unknown> {
+  return JSON.parse((await readBoundedFileBytes(filename)).toString("utf8"));
 }
 
 async function readBoundedResponse(response: Response): Promise<unknown> {
@@ -86,6 +95,23 @@ async function main() {
   const selected =
     areaArg === "all" ? COMMUNITY_AREAS : [getCommunityArea(areaArg)];
   if (selected.some((area) => !area)) throw new Error("Unknown study area");
+  // Read-only, pinned local boundary input. Fail before source requests or writes
+  // if it is missing, changed, malformed or incomplete. Never import this large
+  // geometry asset into the runtime API/client bundle.
+  const boundaryBytes = await readBoundedFileBytes(
+    "data/community-infrastructure/nsw-lga-boundaries.geojson",
+  );
+  const boundaryReceipt = await readBoundedFile(
+    "data/community-infrastructure/nsw-lga-boundaries-receipt.json",
+  );
+  const councilBoundaries = parseCouncilBoundarySnapshot(
+    JSON.parse(boundaryBytes.toString("utf8")),
+    boundaryReceipt,
+    {
+      byteLength: boundaryBytes.byteLength,
+      sha256: createHash("sha256").update(boundaryBytes).digest("hex"),
+    },
+  );
   const output = path.resolve(
     "data/community-infrastructure/osm-snapshot.json",
   );
@@ -127,6 +153,12 @@ async function main() {
       throw new Error(
         `Empty ${area.id} refresh requires manual investigation; previous snapshot preserved`,
       );
+    for (const feature of result.features) {
+      feature.properties.councilJurisdiction = councilJurisdictionForPoint(
+        feature.geometry.coordinates,
+        councilBoundaries,
+      );
+    }
     next.areas[area.id] = result;
     console.log(
       `${area.id}: ${result.features.length} source-reported features from ${result.inputElementCount} OSM objects`,

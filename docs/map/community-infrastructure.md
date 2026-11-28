@@ -4,7 +4,7 @@
 
 **Status:** Implemented, not independently verified in production.
 
-**Scope:** Public, read-only OpenStreetMap facility discovery for bounded Western Sydney study windows.
+**Scope:** Public, read-only OpenStreetMap facility discovery for bounded Western Sydney study windows, with NSW council boundary associations and official council reference links.
 
 ## Problem and participant outcome
 
@@ -16,18 +16,20 @@ This slice adds source-reported parking, toilets and public spaces to MapAble th
 
 The implementation is present in the paths below. Import counts, successful commands, browser results, commit identity and deployment evidence must be recorded in the accompanying change report. This overview does not substitute a planned check for an executed check.
 
-| Capability           | Evidence path                                      | Boundary                                                                   |
-| -------------------- | -------------------------------------------------- | -------------------------------------------------------------------------- |
-| Public page          | `app/accessibility-map/community/page.tsx`         | Linked from `/accessibility-map`; list-first participant interface.        |
-| GeoJSON read API     | `app/api/access/community-infrastructure/route.ts` | Reads the packaged snapshot; no database or upstream source call.          |
-| Source normalization | `lib/access/community-infrastructure/normalise.ts` | Deterministic OSM-to-GAIS projection with source-specific extensions.      |
-| Query and filtering  | `lib/access/community-infrastructure/service.ts`   | Bounded, allowlisted filters over one selected study window.               |
-| Manual refresh       | `scripts/refresh-community-infrastructure.ts`      | Fixed Overpass source; no OSM edits, scheduled job or participant records. |
-| Dataset              | `data/community-infrastructure/osm-snapshot.json`  | Reviewed source snapshot, with per-area retrieval and OSM base timestamps. |
-| Interface            | `components/accessibility-map/community/`          | Optional Leaflet map, equivalent list, evidence details and export.        |
-| Focused tests        | `tests/community-infrastructure*.test.*`           | Source semantics, API limits and participant-interface behaviour.          |
+| Capability           | Evidence path                                             | Boundary                                                                                          |
+| -------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Public page          | `app/accessibility-map/community/page.tsx`                | Linked from `/accessibility-map`; list-first participant interface.                               |
+| GeoJSON read API     | `app/api/access/community-infrastructure/route.ts`        | Reads the packaged snapshot; no database or upstream source call.                                 |
+| Source normalization | `lib/access/community-infrastructure/normalise.ts`        | Deterministic OSM-to-GAIS projection with source-specific extensions.                             |
+| Query and filtering  | `lib/access/community-infrastructure/service.ts`          | Bounded, allowlisted filters over one selected study window.                                      |
+| Manual refresh       | `scripts/refresh-community-infrastructure.ts`             | Fixed Overpass source; no OSM edits, scheduled job or participant records.                        |
+| Dataset              | `data/community-infrastructure/osm-snapshot.json`         | Reviewed source snapshot, with per-area retrieval and OSM base timestamps.                        |
+| Council linkage      | `lib/access/community-infrastructure/council-geometry.ts` | Maintainer-time point-in-polygon match to a checked NSW boundary extract; no ownership inference. |
+| Council references   | `data/community-infrastructure/council-references.json`   | Official reference links and boundary provenance, separate from facility-data import rights.      |
+| Interface            | `components/accessibility-map/community/`                 | Optional Leaflet map, equivalent list, evidence details and export.                               |
+| Focused tests        | `tests/community-infrastructure*.test.*`                  | Source semantics, API limits and participant-interface behaviour.                                 |
 
-The dataset is OSM-derived and carries ODbL 1.0 attribution. Its licence is separate from the application source-code licence. See the [dataset README](../../data/community-infrastructure/README.md) and [OpenStreetMap copyright information](https://www.openstreetmap.org/copyright).
+The facility records are OSM-derived and carry ODbL 1.0 attribution. Council associations use a separate NSW Spatial Services boundary extract under CC BY 4.0, with its attribution retained. These source licences are separate from the application source-code licence and do not establish reuse rights for council facility pages. See the [dataset README](../../data/community-infrastructure/README.md) and [OpenStreetMap copyright information](https://www.openstreetmap.org/copyright).
 
 ### Task-session tool roles
 
@@ -40,7 +42,7 @@ The dataset is OSM-derived and carries ODbL 1.0 attribution. Its licence is sepa
 
 Map Builder also created an 18-marker companion review map, selecting two records per category in each study window from this same snapshot. Each marker retains its OSM link, source-report status, geometry precision and attribution. The [companion draft](https://mapbuilder.app/map?draft=flT--Lf4om7R_zgZz4fOwg&utm_source=chatgpt) is a sample, not the full dataset or a routing service; Map Builder reported a 30-day retention period unless saved there.
 
-These session actions support scoping and review. The runtime data source remains the packaged OSM snapshot; it does not call these tools per request.
+These session actions support scoping and review. Runtime requests read the packaged OSM snapshot with precomputed council associations and the small council-reference registry; they do not call these tools or load boundary polygons per request.
 
 The canonical Vercel project for `mapable.com.au` is `mapableau`, as verified through its project-domain records. This work prepares a preview against that existing project. A deployment or readiness claim requires its own successful build and HTTP/browser evidence; this document does not assert a production release or change to the canonical domain.
 
@@ -117,15 +119,16 @@ Dimensions, slopes, opening schedules and restrictions are retained as source te
 
 This exact endpoint supports anonymous `GET`, `HEAD` and `OPTIONS` for external map clients. Next.js derives HEAD handling from GET; the explicit OPTIONS handler returns 204. CORS permits `Access-Control-Allow-Origin: *`, accepts the `Accept` header and exposes `Link`. It does not enable credentialed requests or accept authorization headers through its preflight. External clients should omit credentials. An exact-path rule in `vercel.json` matches this public endpoint; unrelated APIs retain their existing CORS policy.
 
-| Parameter    | Accepted values/default                                                    |
-| ------------ | -------------------------------------------------------------------------- |
-| `area`       | `parramatta`, `penrith`, `blacktown`; default `parramatta`.                |
-| `category`   | `parking`, `toilet`, `public_space`, `all`; default `all`.                 |
-| `wheelchair` | `yes`, `limited`, `no`, `designated`, `unknown`, `all`; default `all`.     |
-| `limit`      | Integer 1–500; default 500.                                                |
-| `offset`     | Integer 0–100000; default 0.                                               |
-| `bbox`       | Optional `west,south,east,north`, wholly inside the selected study window. |
-| `format`     | Optional `geojson`; no other output format.                                |
+| Parameter    | Accepted values/default                                                              |
+| ------------ | ------------------------------------------------------------------------------------ |
+| `area`       | `parramatta`, `penrith`, `blacktown`; default `parramatta`.                          |
+| `category`   | `parking`, `toilet`, `public_space`, `all`; default `all`.                           |
+| `wheelchair` | `yes`, `limited`, `no`, `designated`, `unknown`, `all`; default `all`.               |
+| `council`    | A council registry ID, or `all` (default); only definite point matches are included. |
+| `limit`      | Integer 1–500; default 500.                                                          |
+| `offset`     | Integer 0–100000; default 0.                                                         |
+| `bbox`       | Optional `west,south,east,north`, wholly inside the selected study window.           |
+| `format`     | Optional `geojson`; no other output format.                                          |
 
 Unknown or repeated parameters, malformed bounds, unsupported values and excessive URL length are rejected. `area=all` is not a public API value: `all` is a manual-refresh command option.
 
@@ -135,9 +138,22 @@ Example requests:
 /api/access/community-infrastructure?area=parramatta
 /api/access/community-infrastructure?area=penrith&category=parking&wheelchair=unknown
 /api/access/community-infrastructure?area=blacktown&category=toilet&format=geojson
+/api/access/community-infrastructure?area=parramatta&council=cumberland_city
 ```
 
 `featureCount`, `totalMatched` and `truncated` distinguish the response page from the full match count. `dataStatus: not_loaded` means the area has no imported snapshot; it is different from a loaded snapshot with zero filtered matches. The UI's download link preserves selected filters and returns the same bounded API page. Clients exporting more than 500 matches must page with `offset`; the list's “show more” reveals more already-fetched records and does not perform server pagination.
+
+### Council and local-government linkages
+
+The reviewed NSW Spatial Services extract contains six complete council polygons intersecting the larger study envelope. The maintainer importer validates its original bytes, SHA-256, receipt, count, coordinates and polygon structure before matching each displayed facility point. Full geometry stays out of the request and client bundles. The matched council IDs are MapAble registry identifiers, not ABS statistical codes; source `abscode`, object ID and UUID remain separate.
+
+The regenerated snapshot has 157 City of Parramatta matches and eight Cumberland matches within the Parramatta study window, 300 Penrith matches and 98 Blacktown matches. All 563 are single interior-point matches in this extract. The original OSM attributes and source retrieval times are unchanged. A place's study window, jurisdiction, owner, operator and access conditions remain distinct fields or evidence questions.
+
+Each feature's `councilJurisdiction` records `matched`, `ambiguous` or `unmatched`, the display coordinate, candidate councils, method, boundary source and retrieval date, and `assetOwnership: not_established`. Any edge touch or overlapping council match remains ambiguous. A point derived from an OSM area centre describes that representative point only; it does not establish the whole site's jurisdiction or an entrance.
+
+`meta.councilLinkage` includes official reference links for councils matched in the selected window. Its counts cover the whole window before category, wheelchair, council, bounding-box or pagination filters; `meta.totalMatched` describes the filtered result. The interface states this scope and shows unknown or ambiguous associations explicitly. There are 18 reviewed reference links across the four councils represented by current records. Their `importEnabled: false` and `bulkReuseStatus: not_established` are separate from the licensed boundary source.
+
+The API accepts registry IDs `city_of_parramatta`, `cumberland_city`, `penrith_city`, `blacktown_city`, `fairfield_city` and `the_hills_shire`; a valid council without matches in the selected window returns zero results. Council-wide inventory or ABS population queries are not implied. See the [council linkage and delivery brief](community-infrastructure-councils.md) for sources, geometry limits and future asset-ID crosswalks.
 
 ## Interface, accessibility and privacy
 
@@ -175,10 +191,10 @@ For an already downloaded raw response, the script also accepts `--from-file ARE
 Run the focused tests:
 
 ```bash
-corepack pnpm exec vitest run tests/community-infrastructure.test.ts tests/community-infrastructure-api.test.ts tests/community-infrastructure-ui.test.tsx tests/map-geojson.test.ts
+corepack pnpm exec vitest run tests/community-infrastructure.test.ts tests/community-infrastructure-api.test.ts tests/community-infrastructure-councils.test.ts tests/community-infrastructure-ui.test.tsx tests/map-geojson.test.ts
 ```
 
-The implementation review recorded 70 passing focused tests: 31 normalization/source-semantics, 27 API/snapshot, 10 interface and two shared map-GeoJSON tests. The full TypeScript check also passed with a 6,144 MB Node heap limit. These results describe local verification at that checkpoint; later changes require the affected checks to be rerun. They do not establish a production release or complete assistive-technology assessment.
+The combined implementation review recorded 98 passing focused tests: 31 normalization/source-semantics, 35 API/snapshot/linkage, 17 boundary geometry/provenance, 13 interface and two shared map-GeoJSON tests. The full TypeScript check passed with a 6,144 MB Node heap limit. The pull request records deployment and browser evidence for its exact commit. Local tests and browser checks do not establish a production release or complete assistive-technology assessment.
 
 Review data diffs, attribution, category semantics, source timestamps and test output before publishing a refreshed snapshot. The importer bounds source bytes/elements, rejects partial/capped/error responses, refuses unexplained empty refreshes and replaces the snapshot atomically only after the selected refresh succeeds. No automatic upstream OSM contribution occurs.
 
@@ -191,7 +207,7 @@ At this review, related work remained in open, unmerged pull requests:
 
 This read-only display snapshot complements those intake proposals. It does not silently reuse unavailable branch code, turn on research flags, publish moderated records or bypass their approval flow. Reassess overlap before either intake PR merges.
 
-The existing [source registry](../../lib/access/data-sources/registry.ts) marks OSM and NPTM as operational-import candidates. That metadata is not proof of an executed import or settled terms for a specific current release. The [Australian source register](community-infrastructure-sources.md) records exact-source licensing, freshness and schema questions. NPTM, Changing Places, council data and TfNSW occupancy are not part of the OSM snapshot.
+The existing [source registry](../../lib/access/data-sources/registry.ts) marks OSM and NPTM as operational-import candidates. That metadata is not proof of an executed import or settled terms for a specific current release. The [Australian source register](community-infrastructure-sources.md) records exact-source licensing, freshness and schema questions. NPTM, Changing Places, council facility inventories and TfNSW occupancy have not been imported by this slice. The separate council-boundary association and reference links described above are implemented.
 
 Mapbox presentation, AnyWhereMap exploration and Mapify organisation do not become authoritative accessibility sources merely because they display or organise records. React Native and Electron are proposed consumers of the public contract; no native binary or parallel application is delivered. See the [platform adaptation brief](community-infrastructure-platforms.md).
 

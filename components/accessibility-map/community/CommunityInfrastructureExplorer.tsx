@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { MapErrorBoundary } from "@/components/error/MapErrorBoundary";
+import type { CouncilBoundarySource } from "@/lib/access/community-infrastructure/council-types";
 import type {
   CommunityAreaId,
   CommunityCategory,
@@ -15,6 +16,11 @@ import type {
 } from "@/lib/access/community-infrastructure/types";
 import { mapableInteractiveFocusRing } from "@/lib/marketing/mapable-care-tokens";
 
+import {
+  CommunityCouncilInformation,
+  CouncilJurisdictionEvidence,
+  CouncilJurisdictionSummary,
+} from "./CommunityCouncilInformation";
 import { CommunityInfrastructureSymbol } from "./CommunityInfrastructureSymbol";
 import {
   COMMUNITY_AREA_LABELS,
@@ -46,11 +52,13 @@ function InfrastructureCard({
   index,
   selected,
   setRef,
+  boundarySource,
 }: {
   feature: CommunityInfrastructureFeature;
   index: number;
   selected: boolean;
   setRef: (element: HTMLElement | null) => void;
+  boundarySource?: CouncilBoundarySource;
 }) {
   const { properties } = feature;
   const { source } = properties;
@@ -145,6 +153,11 @@ function InfrastructureCard({
         </span>
       </p>
 
+      <CouncilJurisdictionSummary
+        jurisdiction={properties.councilJurisdiction}
+        approximate={properties.geometryRole === "approximate_bbox_centre"}
+      />
+
       <details className="mt-4 border-t border-slate-200 pt-2 text-sm">
         <summary
           className={`min-h-11 cursor-pointer rounded-lg py-3 font-semibold ${mapableInteractiveFocusRing}`}
@@ -170,6 +183,10 @@ function InfrastructureCard({
               <dd>{source.checkedScope}</dd>
             </div>
           ) : null}
+          <CouncilJurisdictionEvidence
+            jurisdiction={properties.councilJurisdiction}
+            boundarySource={boundarySource}
+          />
         </dl>
         <p className="text-slate-600">
           Retrieval and edit dates are not access inspection dates. A source
@@ -400,6 +417,13 @@ export function CommunityInfrastructureExplorer() {
             </div>
           </fieldset>
 
+          <CommunityCouncilInformation
+            linkage={data?.meta.councilLinkage}
+            areaLabel={COMMUNITY_AREA_LABELS[area]}
+            category={category}
+            loading={loading}
+          />
+
           <div className="rounded-2xl bg-[#F6FBFC] p-5 text-sm leading-6">
             <h2 className="font-bold">What to check before a visit</h2>
             <p className="mt-2 text-slate-700">
@@ -555,6 +579,7 @@ export function CommunityInfrastructureExplorer() {
                     feature={feature}
                     index={index}
                     selected={selectedId === feature.id}
+                    boundarySource={data?.meta.councilLinkage?.boundarySource}
                     setRef={(element) => {
                       if (element) cards.current.set(feature.id, element);
                       else cards.current.delete(feature.id);
